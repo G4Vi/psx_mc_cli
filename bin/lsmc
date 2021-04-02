@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+use strict; use warnings;
+use feature 'say';
+
+sub print_directory {
+	my ($directory) = @_;
+	my $codestr = substr($directory, 0xA, 19);
+    say $codestr;	
+}
+
+# print the saves
+foreach my $file (@ARGV) {
+	open(my $fh, '<', $file) or die("failed to open: $file");
+	my $contents;
+	my $res = read($fh, $contents, 131073);
+	defined($res) or die("input file wrong size");
+	my $ismcd = ($res == 131072);
+	my $ismcs = ($res == 8320);
+	
+    say "$file:";
+	if($ismcd) {
+		my $directoryoffset = 0x80;
+		while(1) {
+			my $directory = substr($contents, $directoryoffset, 0x80);
+            unpack('C', substr($directory, 0x7F, 0x1)) != 0xA0 or last;
+           	print_directory($directory);
+            $directoryoffset += 0x80;			
+        }			
+	}
+	elsif($ismcs) {
+		my $directory = substr($contents, 0x0, 0x80);
+		print_directory($directory);
+	}
+	else {
+		warn("Unknown file type");
+	}
+	print "\n";
+}

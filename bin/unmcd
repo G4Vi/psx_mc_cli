@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use strict; use warnings;
+
+(@ARGV >= 1) or die("No mcd provided");
+
+# read in the memory card
+open(my $tmpl, '<', $ARGV[0]) or die("failed to open template");
+my $memcard;
+my $cardres = read($tmpl, $memcard, 131073);
+($cardres && ($cardres == 131072)) or die("wrong mcd size");
+
+my $directoryoffset = 0x80;
+my $savedataoffset = 0x2000;
+my $savename = $ARGV[1];
+
+# loop through the saves
+while(1) {
+	my $directory = substr($memcard, $directoryoffset, 0x80);
+    unpack('C', substr($directory, 0x7F, 0x1)) != 0xA0 or last;
+	
+	if(!$savename || (substr($directory, 0xA, 19) eq $savename)) {
+		my $mcs = $directory;
+		$mcs .= substr($memcard, $savedataoffset, 0x2000);
+		print $mcs;
+		exit 0;	
+	}
+    
+    $directoryoffset += 0x80;
+    $savedataoffset += 0x2000;	
+}
+warn "Failed to extract save";
+exit 1;

@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+use strict; use warnings;
+use FindBin;
+use File::Spec;
+my @parentdir = ($FindBin::Bin, '..');
+my @resdir = (@parentdir, 'res');
+
+# create the memcard buf
+my $blankfile = File::Spec->catfile(@resdir, 'blank.mcd');
+open(my $tmpl, '<', $blankfile) or die("failed to open template");
+my $memcard;
+my $tmplres = read($tmpl, $memcard, 131073);
+($tmplres && ($tmplres == 131072)) or die("template wrong size");
+
+# Add each save to the memcard
+my $directoryoffset = 0x80;
+my $savedataoffset = 0x2000;
+foreach my $file (@ARGV) {
+	open(my $fh, '<', $file) or die("failed to open: $file");
+	my $contents;
+	my $res = read($fh, $contents, 8321);
+    ($res && ($res == 8320)) or die("input file wrong size");
+
+	substr($memcard, $directoryoffset, 0x80, substr($contents, 0x00, 0x80, ''));
+    substr($memcard, $savedataoffset, 0x2000, substr($contents, 0x00, 0x2000, ''));	
+	$directoryoffset += 0x80;
+	$savedataoffset += 0x2000;	
+}
+
+# output the memory card
+print $memcard;
