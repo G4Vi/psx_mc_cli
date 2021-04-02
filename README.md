@@ -15,7 +15,7 @@ Git for Windows has a usable perl environment if needed. For using the utils fro
 
 For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `perl` and `bin_cmd` to your PATH.
 
-`Start -> View advanced system settings -> Advanced -> Environment Variables -> select path and edit.
+`Start` -> `View advanced system settings` -> `Advanced` -> `Environment Variables` select `Path` and edit.
 
 ## Usage
 
