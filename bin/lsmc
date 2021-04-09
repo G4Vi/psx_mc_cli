@@ -4,8 +4,57 @@ use feature 'say';
 
 sub print_directory {
 	my ($directory) = @_;
-	my $codestr = substr($directory, 0xA, 19);
-    say $codestr;	
+    my $inuse = unpack('C', $directory);
+	my $datasize = unpack('V', substr($directory, 0x4, 0x4));
+	my $linkindex = unpack('v', substr($directory, 0x8));
+	my $codestr =  unpack('Z*', substr($directory, 0xA));
+	my @toxor    = unpack('C127', $directory);
+	my $storedxor = unpack('C', substr($directory, 0x7F));
+    
+	my %blocktype = (
+		0xA0 => 'EMPTY',
+		0x52 => 'MIDLINK',
+		0x53 => 'ENDLINK',
+		0xFF => 'UNUSABLE'
+	);
+	my $inusestr = $blocktype{$inuse};
+	if(! $inusestr) {
+		if($inuse == 0x51) {
+			$inusestr = ($linkindex == 0xFFFF) ? 'INUSE' : 'SRTLINK';			
+		}		
+		else {
+			$inusestr = sprintf("0x%X", $inuse);
+		}
+	}
+
+	my $linkstr = sprintf("0x%04X", $linkindex);
+
+	
+	my $blockcount = $datasize / 0x2000;
+	my $datastring = ((($blockcount % 1) == 0) && ($blockcount <= 15)) ? sprintf("%2u blocks", $blockcount) : "$datasize bytes";
+
+    my $xor = 0;
+	foreach my $char (@toxor) {
+        $xor ^= $char; 
+    }
+    my $xorstring = ($xor == $storedxor) ? sprintf("xor 0x%X", $xor) : sprintf("xor bad, calculated 0x%X stored 0x%x", $xor, $storedxor);    
+    say sprintf("%-8s %-20s %s %-20s %s", $inusestr, $codestr, $linkstr, $datastring, $xorstring);	
+}
+
+sub is_mcd {
+	my ($res) = @_;
+	# A PSX memory card is 1 Mebibyte/ 128 kibibyte/ 131072 bytes
+	# 1 header block of 8192 and 15 data blocks of 8192.
+	return (length($res) == 131072);
+}
+
+sub is_mcs {
+	my ($res) = @_;
+	# A PSX mcs save is 1 directory frame and X data frames
+	my $datasize = length($res) - 0x80;
+	(($datasize % 0x2000) == 0) or return 0;
+
+	return 1;
 }
 
 # print the saves
@@ -13,19 +62,18 @@ foreach my $file (@ARGV) {
 	open(my $fh, '<', $file) or die("failed to open: $file");
 	my $contents;
 	my $res = read($fh, $contents, 131073);
-	defined($res) or die("input file wrong size");
-	my $ismcd = ($res == 131072);
-	my $ismcs = ($res == 8320);
+	(defined($res) && ($res <= 131072)) or die("input file wrong size");
+	my $ismcd = is_mcd($contents);
+	my $ismcs = is_mcs($contents);
 	
     say "$file:";
 	if($ismcd) {
 		my $directoryoffset = 0x80;
-		while(1) {
+		for(my $i = 0; $i < 15; $i++) {
 			my $directory = substr($contents, $directoryoffset, 0x80);
-            unpack('C', substr($directory, 0x7F, 0x1)) != 0xA0 or last;
-           	print_directory($directory);
-            $directoryoffset += 0x80;			
-        }			
+			print_directory($directory);
+            $directoryoffset += 0x80;
+		}					
 	}
 	elsif($ismcs) {
 		my $directory = substr($contents, 0x0, 0x80);
