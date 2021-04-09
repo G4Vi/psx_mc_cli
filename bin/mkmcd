@@ -15,17 +15,73 @@ my $tmplres = read($tmpl, $memcard, 131073);
 # Add each save to the memcard
 my $directoryoffset = 0x80;
 my $savedataoffset = 0x2000;
+my $frames_left = 15;
 foreach my $file (@ARGV) {
+	# read the mcs
 	open(my $fh, '<', $file) or die("failed to open: $file");
+	my $size = -s $fh;
+    (($size - 0x80) % 0x2000) == 0 or die("input file wrong size");
 	my $contents;
-	my $res = read($fh, $contents, 8321);
-    ($res && ($res == 8320)) or die("input file wrong size");
+	my $res = read($fh, $contents, $size);
+    ($res && ($res == $size)) or die("failed to read entire file");
 
-	substr($memcard, $directoryoffset, 0x80, substr($contents, 0x00, 0x80, ''));
-    substr($memcard, $savedataoffset, 0x2000, substr($contents, 0x00, 0x2000, ''));	
-	$directoryoffset += 0x80;
-	$savedataoffset += 0x2000;	
+	my $directory = substr($contents, 0x00, 0x80, '');
+	my $dirdata = parse_directory($directory);
+	# determine the number of blocks needed for this save
+	my $blockcount = $datasize / 0x2000;
+	(($blockcount % 1) == 0) or die("not integer blocksize");
+	my $dircount = ($blockcount > 0) ? $blockcount : 1;
+	$frames_left >= $dircount or die("Too much data for one more memory card");
+	
+	
+	# multiblock save, set frame index, and add link blocks
+	if($blockcount > 1) {
+		my $frameindex = 16-$framesleft;
+		# update start block with the correct frame index		
+		substr($directory, 0x8, 0x2, pack('v', $frameindex));
+		substr($directory, 0x7F, 0x1, pack('C', xordirectory($directory));
+
+		# create midblocks if any
+		while($blockcount > 2) {
+			$frameindex++;			
+			my $block = pack('Cx7vx118', 0x52, $frameindex);
+			substr($block, 0x7F, 0x1, pack('C', 0x52 ^ $frameindex));
+			$directory .= $block;
+			$blockcount--;
+		}
+
+		# create end block
+		$directory .= pack('Cx7vx117', 0x53, 0xFFFF, 0x53);
+	}
+
+	substr($memcard, $directoryoffset, length($directory), $directory);
+    substr($memcard, $savedataoffset, length($contents), $contents);	
+	$directoryoffset += (0x80 * $dircount);
+	$savedataoffset += (0x2000 * $dircount);
+	$frames_left -= $dircount;	
 }
 
 # output the memory card
 print $memcard;
+
+sub xordirectory {
+	my ($directory) = @_;
+	my @toxor = unpack('C127', $directory);
+	my $xor = 0;
+	foreach my $char (@toxor) {
+        $xor ^= $char; 
+    }
+	return $xor;
+}
+
+sub parse_directory {
+	my ($directory) = @_;
+    return {
+		'inuse'     => unpack('C', $directory),
+		'datasize'  => unpack('V', substr($directory, 0x4, 0x4)),
+		'linkindex' => unpack('v', substr($directory, 0x8),
+        'codestr'   => unpack('Z*', substr($directory, 0xA)),
+		'toxor'     => \unpack('C127', $directory),
+		'storedxor' => unpack('C', substr($directory, 0x7F));
+	};
+}
