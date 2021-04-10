@@ -28,7 +28,7 @@ foreach my $file (@ARGV) {
 	my $directory = substr($contents, 0x00, 0x80, '');
 	my $dirdata = parse_directory($directory);
 	# determine the number of blocks needed for this save
-	my $blockcount = $datasize / 0x2000;
+	my $blockcount = $dirdata->{'datasize'} / 0x2000;
 	(($blockcount % 1) == 0) or die("not integer blocksize");
 	my $dircount = ($blockcount > 0) ? $blockcount : 1;
 	$frames_left >= $dircount or die("Too much data for one more memory card");
@@ -36,10 +36,10 @@ foreach my $file (@ARGV) {
 	
 	# multiblock save, set frame index, and add link blocks
 	if($blockcount > 1) {
-		my $frameindex = 16-$framesleft;
+		my $frameindex = 16-$frames_left;
 		# update start block with the correct frame index		
 		substr($directory, 0x8, 0x2, pack('v', $frameindex));
-		substr($directory, 0x7F, 0x1, pack('C', xordirectory($directory));
+		substr($directory, 0x7F, 0x1, pack('C', xordirectory($directory)));
 
 		# create midblocks if any
 		while($blockcount > 2) {
@@ -51,7 +51,7 @@ foreach my $file (@ARGV) {
 		}
 
 		# create end block
-		$directory .= pack('Cx7vx117', 0x53, 0xFFFF, 0x53);
+		$directory .= pack('Cx7vx117C', 0x53, 0xFFFF, 0x53);
 	}
 
 	substr($memcard, $directoryoffset, length($directory), $directory);
@@ -79,9 +79,8 @@ sub parse_directory {
     return {
 		'inuse'     => unpack('C', $directory),
 		'datasize'  => unpack('V', substr($directory, 0x4, 0x4)),
-		'linkindex' => unpack('v', substr($directory, 0x8),
+		'linkindex' => unpack('v', substr($directory, 0x8)),
         'codestr'   => unpack('Z*', substr($directory, 0xA)),
-		'toxor'     => \unpack('C127', $directory),
-		'storedxor' => unpack('C', substr($directory, 0x7F));
+		'storedxor' => unpack('C', substr($directory, 0x7F))
 	};
 }
