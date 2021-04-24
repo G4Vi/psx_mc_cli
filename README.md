@@ -27,9 +27,7 @@ For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `per
 
 ## TODO
 - make tests
-- Support multi-block saves
 - Don't hardcode perl path in bat files
-- Change `unmcd` to be more intuitive.
-- Only check for 15 directory entries?
+- Change `unmcd` to be more intuitive, maybe rename `mkmcd`?
 - other memory card formats
 - Render save graphics to terminal?
