@@ -17,16 +17,17 @@ my $savename = $ARGV[1];
 while(1) {
 	my $directory = substr($memcard, $directoryoffset, 0x80);
     unpack('C', substr($directory, 0x7F, 0x1)) != 0xA0 or last;
-	
+	my $datasize = unpack('V', substr($directory, 0x4, 0x4));
+	my $directorysize = ($datasize / 0x2000) * 0x80;
 	if(!$savename || (substr($directory, 0xA, 19) eq $savename)) {
-		my $mcs = $directory;
-		$mcs .= substr($memcard, $savedataoffset, 0x2000);
+		my $mcs = $directory;		
+		$mcs .= substr($memcard, $savedataoffset, $datasize);
 		print $mcs;
 		exit 0;	
 	}
     
-    $directoryoffset += 0x80;
-    $savedataoffset += 0x2000;	
+    $directoryoffset += $directorysize;
+    $savedataoffset += $datasize;	
 }
 warn "Failed to extract save";
 exit 1;
