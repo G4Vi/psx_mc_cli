@@ -1,44 +1,97 @@
 #!/usr/bin/perl
 use strict; use warnings;
 use feature 'say';
+use Encode qw(decode encode);
+use Devel::Peek;
 
-sub print_directory {
+sub parse_directory {
 	my ($directory) = @_;
-    my $inuse = unpack('C', $directory);
+	my $inuse = unpack('C', $directory);
 	my $datasize = unpack('V', substr($directory, 0x4, 0x4));
 	my $linkindex = unpack('v', substr($directory, 0x8));
 	my $codestr =  unpack('Z*', substr($directory, 0xA));
 	my @toxor    = unpack('C127', $directory);
 	my $storedxor = unpack('C', substr($directory, 0x7F));
-    
-	my %blocktype = (
-		0xA0 => 'EMPTY',
-		0x52 => 'MIDLINK',
-		0x53 => 'ENDLINK',
-		0xFF => 'UNUSABLE'
-	);
-	my $inusestr = $blocktype{$inuse};
-	if(! $inusestr) {
-		if($inuse == 0x51) {
-			$inusestr = ($linkindex == 0xFFFF) ? 'INUSE' : 'SRTLINK';			
-		}		
-		else {
-			$inusestr = sprintf("0x%X", $inuse);
-		}
+
+	#my @blocktypes = ('INUSE', 'SRTLINK', 'MIDLINK', 'ENDLINK', 'EMPTY', 'UNUSABLE', 'UNKNOWN');
+	my $blockcount = int($datasize / 0x2000);
+
+	my $calcxor = 0;
+	foreach my $char (@toxor) {
+        $calcxor ^= $char; 
+    }
+
+	return {
+		'inuse'     => $inuse,
+		'datasize'  => $datasize,
+		'linkindex' => $linkindex,
+		'codename'  => $codestr,
+		'xor'       => $storedxor,
+
+		'calcxor'    => $calcxor,
+		'calcblocks' => $blockcount
+	};
+}
+
+sub parse_file_header {
+	my ($file) = @_;
+	my $id = unpack('a2', $file);
+	my $displayflag = unpack('C', substr($file, 0x2));
+    my $blocknum = unpack('C', substr($file, 0x3));
+	my $shiftjisbuf = unpack('a64', substr($file, 0x4, 0x40));
+	my $clut = unpack('C', substr($file, 0x60, 0x20));
+
+
+	my $iconfnt = 0;
+    if(($displayflag >= 0x11)|| ($displayflag <= 0x13)) {
+		$iconfnt = $displayflag - 0x10;
 	}
 
-	my $linkstr = sprintf("0x%04X", $linkindex);
+	my $firstnul = index($shiftjisbuf, "\0");
+	if($firstnul != -1) {	
+		$shiftjisbuf = substr($shiftjisbuf, 0, $firstnul);	
+	}
+	my $shiftjis = decode('shiftjis', $shiftjisbuf);
 
-	
-	my $blockcount = $datasize / 0x2000;
-	my $datastring = ((($blockcount % 1) == 0) && ($blockcount <= 15)) ? sprintf("%2u blocks", $blockcount) : "$datasize bytes";
+	return {
+		'id' => $id,
+		'displayflag' => $displayflag,
+		'blocknum' => $blocknum,
+		'titlebuf' =>  $shiftjisbuf,
+		'clut' => $clut,
+		'title' => $shiftjis,
+		'framecnt' => $iconfnt
+	};
+}
 
-    my $xor = 0;
-	foreach my $char (@toxor) {
-        $xor ^= $char; 
-    }
-    my $xorstring = ($xor == $storedxor) ? sprintf("xor 0x%X", $xor) : sprintf("xor bad, calculated 0x%X stored 0x%x", $xor, $storedxor);    
-    say sprintf("%-8s %-20s %s %-20s %s", $inusestr, $codestr, $linkstr, $datastring, $xorstring);	
+sub print_directory {
+	my ($directorybuf) = @_;
+
+	my $dir = parse_directory($directorybuf);    
+    
+	my %blockstring = (		
+		0x52 => 'MIDLINK',
+		0x53 => 'ENDLINK',
+		0xA0 => 'EMPTY',
+		0xA1 => 'EMPTY',
+		0xA2 => 'EMPTY',
+		0xA3 => 'EMPTY',
+		0xFF => 'UNUSABLE'
+	);
+	my $inusestr = $blockstring{$dir->{'inuse'}};
+	if(! $inusestr) {
+		if($dir->{'inuse'}== 0x51) {
+			$inusestr = ($dir->{'linkindex'} == 0xFFFF) ? 'INUSE' : 'SRTLINK';			
+		}		
+		else {
+			$inusestr = sprintf("0x%X", $dir->{'inuse'});
+		}
+	}
+	my $linkstr = sprintf("0x%04X", $dir->{'linkindex'});	
+	my $datastring = ((($dir->{'datasize'} % 0x2000) == 0) && ($dir->{'calcblocks'} <= 15)) ? sprintf("%2u blocks", $dir->{calcblocks}) : $dir->{datasize}. " bytes";
+    my $xorstring = ($dir->{'calcxor'} == $dir->{'xor'}) ? sprintf("xor 0x%X", $dir->{'xor'}) : sprintf("xor bad, calculated 0x%X stored 0x%x", $dir->{'calcxor'}, $dir->{'xor'});
+
+    say sprintf("%-8s %-20s %s %-20s %s", $inusestr, $dir->{'codename'}, $linkstr, $datastring, $xorstring);	
 }
 
 sub is_mcd {
@@ -57,6 +110,15 @@ sub is_mcs {
 	return 1;
 }
 
+use Getopt::Long qw(GetOptions);
+Getopt::Long::Configure qw(gnu_getopt);   
+binmode(STDOUT, "encoding(UTF-8)");
+#my $data = 1;
+#GetOptions(
+#    'data|d' => \$data,
+#) or die "Usage: $0 --data\n";
+
+
 # print the saves
 foreach my $file (@ARGV) {
 	open(my $fh, '<', $file) or die("failed to open: $file");
@@ -64,9 +126,44 @@ foreach my $file (@ARGV) {
 	my $res = read($fh, $contents, 131073);
 	(defined($res) && ($res <= 131072)) or die("input file wrong size");
 	my $ismcd = is_mcd($contents);
-	my $ismcs = is_mcs($contents);
-	
+	my $ismcs = is_mcs($contents);	
     say "$file:";
+
+	if($data) {
+		if($ismcd) {
+			my $dataoffset = 0x2000;
+		    for(my $directoryoffset = 128; $directoryoffset < 2048;) {
+		    	my $directory = substr($contents, $directoryoffset, 0x80);
+				my $dir = parse_directory($directory);
+				my $incblocks = 1;
+				if($dir->{'calcblocks'}) {
+					my $filebuf = substr($contents, $dataoffset, 0x80);
+				    my $fileheader = parse_file_header($filebuf);
+					say $fileheader->{'title'};
+					my $foffset = $dataoffset+0x80;
+					for(my $i = 0; $i < $fileheader->{'framecnt'}; $i++) {
+						my $framebuf = substr($contents, $foffset, 0x80);
+						my $pixbuf = unpack('h*', $framebuf);
+						my @vals = split('', $pixbuf);
+						for(my $y = 0; $y < 16; $y++) {
+							for(my $x = 0; $x < 16; $x++) {
+								my $ch = hex(shift @vals);
+								print(($ch > 0) ? "X" : " ");
+							}
+							print("\n");
+						}
+						$foffset += 0x80;
+					}
+					$incblocks = $dir->{'calcblocks'};		    	    
+				}
+				$directoryoffset += ($incblocks * 128);
+				$dataoffset += ($incblocks * 0x2000);                
+		    }
+		}
+		print "\n";
+		next;
+	}
+
 	if($ismcd) {
 		my $directoryoffset = 0x80;
 		for(my $i = 0; $i < 15; $i++) {
