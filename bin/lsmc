@@ -75,45 +75,32 @@ binmode(STDOUT, "encoding(UTF-8)");
 
 # print the saves
 foreach my $file (@ARGV) {
-	open(my $fh, '<', $file) or die("failed to open: $file");
-	my $contents;
-	my $res = read($fh, $contents, 131073);
-	(defined($res) && ($res <= 131072)) or die("input file wrong size");
-	my $ismcd = PSX::MC::is_mcd($contents);
-	my $ismcs = PSX::MC::is_mcs($contents);	
-    say "$file:";	
-
-	if($ismcd) {
-		my $directoryoffset = 0x80;
-		my $filestart;
-		for(my $i = 1; $i < 16; $i++) {
-			my $directory = substr($contents, $directoryoffset, 0x80);
-			my $direntry = PSX::MC::parse_directory($directory);   
-			print_directory($direntry);
-			if($direntry->{'calcblocks'}) {
-				$filestart = ($i * 0x2000);
-			}
-			# if at end of file's directory frames (single directory file or endlink directory)
-			# read the file
-			if((($direntry->{'inuse'}== 0x51) && ($direntry->{'linkindex'} == 0xFFFF)) || ($direntry->{'inuse'} == 0x53)) {
-				if($filestart) {
-					handleFile($contents, $filestart);
-				    $filestart = '';
-				}				
-			}
-            $directoryoffset += 0x80;
-		}					
+	say "$file:";
+	my $mcfile = PSX::MC->load($file);
+	if(! $mcfile) {
+		warn("unable to load: $file");
+		next;
 	}
-	elsif($ismcs) {
-		my $directory = substr($contents, 0x0, 0x80);
-		my $direntry = PSX::MC::parse_directory($directory);   
-		print_directory($direntry);
-		if($direntry->{'calcblocks'}) {
-			handleFile($contents, 0x80);
-		}
+	if($mcfile->{'hasdir'}) {
+		my $filestart;
+		$mcfile->foreachDirEntry(sub {
+			my ($entry, $dataoffset, $entrydata, $i) = @_;
+			print_directory($entry);
+			# if the entry has data assocated, save the offset
+			if($entry->{'calcblocks'}) {
+				$filestart = $dataoffset;
+			}
+			# if entry is part of mcs or is a single block save or is and endlink read the file
+			if(($mcfile->{'type'} eq 'mcs') ||
+			((($entry->{'inuse'}== 0x51) && ($entry->{'linkindex'} == 0xFFFF)) || ($entry->{'inuse'} == 0x53))) {
+				handleFile($mcfile->{'contents'}, $filestart);
+				$filestart = '';
+			}
+		});
 	}
 	else {
-		warn("Unknown file type");
+		warn("skipping unhandled format");
 	}
+
 	print "\n";
 }

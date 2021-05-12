@@ -66,6 +66,10 @@ sub parse_file_header {
 
 sub is_mcd {
 	my ($res) = @_;
+
+	(substr($res, 0, 2) eq 'MC') or return 0;
+
+
 	# A PSX memory card is 1 Mebibyte/ 128 kibibyte/ 131072 bytes
 	# 1 header block of 8192 and 15 data blocks of 8192.
 	return (length($res) == 131072);
@@ -75,9 +79,73 @@ sub is_mcs {
 	my ($res) = @_;
 	# A PSX mcs save is 1 directory frame and X data frames
 	my $datasize = length($res) - 0x80;
-	(($datasize % 0x2000) == 0) or return 0;
+	return (($datasize % 0x2000) == 0);
+}
 
-	return 1;
+
+sub load {
+	my ($class, $filename) = @_;
+	my %self = ('filename' => $filename, 'contents' => '');
+	open(my $fh, '<', $filename) or die("failed to open: $filename");
+	my $res = read($fh, $self{'contents'}, 131073);
+
+	# a mcd file (full memory card dump) should be the largest file
+	(defined($res) && ($res <= 131072)) or return undef;
+
+	if(is_mcd($self{'contents'})) {
+		$self{'type'} = 'mcd';
+	}
+	elsif(is_mcs($self{'contents'})) {
+		$self{'type'} = 'mcs';
+	}
+	elsif(($res <= (15*0x2000)) && ($res >= 0x2000) && (($res % 0x2000) == 0)) {
+		$self{'type'} = 'rawsave';
+	}
+	elsif(substr($res, 0, 2) == 'MC') {
+		warn("File starts with MC, but filesize is $res. Assuming type is mcd");
+		$self{'type'} = 'mcd';		
+	}
+	else {		
+		return undef;
+	}
+
+	if(($self{'type'} eq 'mcd') || ($self{'type'} eq 'mcs')) {
+		$self{'hasdir'} = 1;
+	}
+
+	bless \%self, $class;
+	return \%self;
+}
+
+sub foreachDirEntry {
+	my ($self, $callback) = @_;
+	(($self->{'type'} eq 'mcd') || ($self->{'type'} eq 'mcs')) or die("Unhandled filetype");
+
+    my $startindex;
+	my $dataoffset;
+	my $maxcount;
+	if($self->{'type'} eq 'mcs') {
+		$startindex = 0;
+		$dataoffset = 0x80;
+		$maxcount = 1;
+	}
+	elsif($self->{'type'} eq 'mcd') {
+		$startindex = 1;
+		$dataoffset = 0x2000;
+		$maxcount = 15;
+	}	
+
+	for(my $i = $startindex; $i < ($startindex+$maxcount); $i++) {
+		my $entrydata = substr($self->{'contents'}, ($i * 0x80), 0x80);
+		my $entry = parse_directory($entrydata);
+		$callback->($entry, $dataoffset, $entrydata, $i);
+		$dataoffset += 0x2000;		 
+	}
+}
+
+sub readSave {
+	my ($self, $dataoffset) = @_;
+	my $savedata = substr($self->{'contents'}, $dataoffset, )
 }
 
 1;
