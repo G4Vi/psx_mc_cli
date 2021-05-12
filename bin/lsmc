@@ -106,7 +106,7 @@ foreach my $file (@ARGV) {
 	}
 	elsif($ismcs) {
 		my $directory = substr($contents, 0x0, 0x80);
-		my $direntry = parse_directory($directory);   
+		my $direntry = PSX::MC::parse_directory($directory);   
 		print_directory($direntry);
 		if($direntry->{'calcblocks'}) {
 			handleFile($contents, 0x80);
