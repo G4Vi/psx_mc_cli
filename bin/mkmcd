@@ -2,6 +2,19 @@
 use strict; use warnings;
 use FindBin;
 use File::Spec;
+use lib "$FindBin::Bin/../lib";
+use PSX::MC;
+
+sub xordirectory {
+	my ($directory) = @_;
+	my @toxor = unpack('C127', $directory);
+	my $xor = 0;
+	foreach my $char (@toxor) {
+        $xor ^= $char; 
+    }
+	return $xor;
+}
+
 my @parentdir = ($FindBin::Bin, '..');
 my @resdir = (@parentdir, 'res');
 
@@ -26,7 +39,7 @@ foreach my $file (@ARGV) {
     ($res && ($res == $size)) or die("failed to read entire file");
 
 	my $directory = substr($contents, 0x00, 0x80, '');
-	my $dirdata = parse_directory($directory);
+	my $dirdata = PSX::MC::parse_directory($directory);
 	# determine the number of blocks needed for this save
 	my $blockcount = $dirdata->{'datasize'} / 0x2000;
 	(($blockcount % 1) == 0) or die("not integer blocksize");
@@ -63,24 +76,3 @@ foreach my $file (@ARGV) {
 
 # output the memory card
 print $memcard;
-
-sub xordirectory {
-	my ($directory) = @_;
-	my @toxor = unpack('C127', $directory);
-	my $xor = 0;
-	foreach my $char (@toxor) {
-        $xor ^= $char; 
-    }
-	return $xor;
-}
-
-sub parse_directory {
-	my ($directory) = @_;
-    return {
-		'inuse'     => unpack('C', $directory),
-		'datasize'  => unpack('V', substr($directory, 0x4, 0x4)),
-		'linkindex' => unpack('v', substr($directory, 0x8)),
-        'codestr'   => unpack('Z*', substr($directory, 0xA)),
-		'storedxor' => unpack('C', substr($directory, 0x7F))
-	};
-}
