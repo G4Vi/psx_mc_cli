@@ -136,14 +136,12 @@ sub handleFile {
     # print the icon
 	my $foffset = $dataoffset+0x80;
 	for(my $i = 0; $i < $fileheader->{'framecnt'}; $i++) {
-		my $framebuf = substr($contents, $foffset, 0x80);
-		my $pixbuf = unpack('h*', $framebuf);
-		my @vals = split('', $pixbuf);
+		my $framebuf = substr($contents, $foffset, 0x80);		
 		for(my $y = 0; $y < 16; $y++) {
 			for(my $x = 0; $x < 16; $x++) {
-				my $ch = hex(shift @vals);
-				print(($ch > 0) ? "X" : " ");
-				print(($ch > 0) ? "X" : " ");
+				my $ch = vec($framebuf, ($y * 16)+$x, 4);
+				print(($ch) ? "X" : " ");
+				print(($ch) ? "X" : " ");
 			}
 			print("\n");
 		}
