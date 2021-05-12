@@ -33,13 +33,14 @@ sub parse_directory {
 	};
 }
 
+
 sub parse_file_header {
 	my ($file) = @_;
 	my $id = unpack('a2', $file);
 	my $displayflag = unpack('C', substr($file, 0x2));
     my $blocknum = unpack('C', substr($file, 0x3));
 	my $shiftjisbuf = unpack('a64', substr($file, 0x4, 0x40));
-	my $clut = unpack('C', substr($file, 0x60, 0x20));
+	my @clut = unpack('v16', substr($file, 0x60, 0x20));
 
 
 	my $iconfnt = 0;
@@ -58,16 +59,14 @@ sub parse_file_header {
 		'displayflag' => $displayflag,
 		'blocknum' => $blocknum,
 		'titlebuf' =>  $shiftjisbuf,
-		'clut' => $clut,
+		'clut' => \@clut,
 		'title' => $shiftjis,
 		'framecnt' => $iconfnt
 	};
 }
 
 sub print_directory {
-	my ($directorybuf) = @_;
-
-	my $dir = parse_directory($directorybuf);    
+	my ($dir) = @_;	 
     
 	my %blockstring = (		
 		0x52 => 'MIDLINK',
@@ -113,11 +112,44 @@ sub is_mcs {
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);   
 binmode(STDOUT, "encoding(UTF-8)");
-#my $data = 1;
+
 #GetOptions(
 #    'data|d' => \$data,
 #) or die "Usage: $0 --data\n";
 
+sub handleFile {
+	my ($contents, $dataoffset) = @_;
+	my $filebuf = substr($contents, $dataoffset, 0x80);
+	my $fileheader = parse_file_header($filebuf);
+	say $fileheader->{'title'};
+	
+	# get the clut colors, not currently used
+	my $red_mask = 0x1F;
+    my $green_mask = 0x3E0;
+    my $blue_mask = 0x7C00;
+	foreach my $rgb555 (@{$fileheader->{'clut'}}) {
+		my $red = ($rgb555 & $red_mask) << 3;
+		my $green = (($rgb555 & $green_mask) >> 5) << 3;
+		my $blue = (($rgb555 & $blue_mask) >> 10) << 3;
+	}
+
+    # print the icon
+	my $foffset = $dataoffset+0x80;
+	for(my $i = 0; $i < $fileheader->{'framecnt'}; $i++) {
+		my $framebuf = substr($contents, $foffset, 0x80);
+		my $pixbuf = unpack('h*', $framebuf);
+		my @vals = split('', $pixbuf);
+		for(my $y = 0; $y < 16; $y++) {
+			for(my $x = 0; $x < 16; $x++) {
+				my $ch = hex(shift @vals);
+				print(($ch > 0) ? "X" : " ");
+				print(($ch > 0) ? "X" : " ");
+			}
+			print("\n");
+		}
+		$foffset += 0x80;
+	}
+}
 
 # print the saves
 foreach my $file (@ARGV) {
@@ -127,54 +159,36 @@ foreach my $file (@ARGV) {
 	(defined($res) && ($res <= 131072)) or die("input file wrong size");
 	my $ismcd = is_mcd($contents);
 	my $ismcs = is_mcs($contents);	
-    say "$file:";
-
-	if($data) {
-		if($ismcd) {
-			my $dataoffset = 0x2000;
-		    for(my $directoryoffset = 128; $directoryoffset < 2048;) {
-		    	my $directory = substr($contents, $directoryoffset, 0x80);
-				my $dir = parse_directory($directory);
-				my $incblocks = 1;
-				if($dir->{'calcblocks'}) {
-					my $filebuf = substr($contents, $dataoffset, 0x80);
-				    my $fileheader = parse_file_header($filebuf);
-					say $fileheader->{'title'};
-					my $foffset = $dataoffset+0x80;
-					for(my $i = 0; $i < $fileheader->{'framecnt'}; $i++) {
-						my $framebuf = substr($contents, $foffset, 0x80);
-						my $pixbuf = unpack('h*', $framebuf);
-						my @vals = split('', $pixbuf);
-						for(my $y = 0; $y < 16; $y++) {
-							for(my $x = 0; $x < 16; $x++) {
-								my $ch = hex(shift @vals);
-								print(($ch > 0) ? "X" : " ");
-							}
-							print("\n");
-						}
-						$foffset += 0x80;
-					}
-					$incblocks = $dir->{'calcblocks'};		    	    
-				}
-				$directoryoffset += ($incblocks * 128);
-				$dataoffset += ($incblocks * 0x2000);                
-		    }
-		}
-		print "\n";
-		next;
-	}
+    say "$file:";	
 
 	if($ismcd) {
 		my $directoryoffset = 0x80;
-		for(my $i = 0; $i < 15; $i++) {
+		my $filestart;
+		for(my $i = 1; $i < 16; $i++) {
 			my $directory = substr($contents, $directoryoffset, 0x80);
-			print_directory($directory);
+			my $direntry = parse_directory($directory);   
+			print_directory($direntry);
+			if($direntry->{'calcblocks'}) {
+				$filestart = ($i * 0x2000);
+			}
+			# if at end of file's directory frames (single directory file or endlink directory)
+			# read the file
+			if((($direntry->{'inuse'}== 0x51) && ($direntry->{'linkindex'} == 0xFFFF)) || ($direntry->{'inuse'} == 0x53)) {
+				if($filestart) {
+					handleFile($contents, $filestart);
+				    $filestart = '';
+				}				
+			}
             $directoryoffset += 0x80;
 		}					
 	}
 	elsif($ismcs) {
 		my $directory = substr($contents, 0x0, 0x80);
-		print_directory($directory);
+		my $direntry = parse_directory($directory);   
+		print_directory($direntry);
+		if($direntry->{'calcblocks'}) {
+			handleFile($contents, 0x80);
+		}
 	}
 	else {
 		warn("Unknown file type");
