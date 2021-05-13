@@ -77,9 +77,17 @@ binmode(STDOUT, "encoding(UTF-8)");
 #    'data|d' => \$data,
 #) or die "Usage: $0 --data\n";
 
-foreach my $file (@ARGV) {
-	say "$file:";
+my @files;
+if((@ARGV) > 0) {
+	@files = @ARGV;
+}
+else {
+	push @files, '-';
+}
+
+foreach my $file (@files) {	
 	my $mcfile = PSX::MC->load($file);
+	say (($file ne '-') ? "$file:" : 'From STDIN:');
 	if(! $mcfile) {
 		warn("unable to load: $file");
 		next;

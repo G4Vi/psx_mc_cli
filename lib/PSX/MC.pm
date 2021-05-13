@@ -97,12 +97,20 @@ sub xordirectory {
 
 sub load {
 	my ($class, $filename) = @_;
-	my %self = ('filename' => $filename, 'contents' => '');
-	open(my $fh, '<', $filename) or die("failed to open: $filename");
+	
+	my $fh;
+	if($filename ne '-') {
+		open($fh, '<', $filename) or die("failed to open: $filename");
+	}
+	else {
+		$fh = *STDIN;
+		$filename = 'STDIN';
+	}
+	my %self = ('filename' => $filename, 'contents' => '');	
 	my $res = read($fh, $self{'contents'}, 131073);
 
 	# a mcd file (full memory card dump) should be the largest file
-	(defined($res) && ($res <= 131072)) or return undef;
+	(($res) && ($res <= 131072)) or return undef;
 
 	if(is_mcd($self{'contents'})) {
 		$self{'type'} = 'mcd';

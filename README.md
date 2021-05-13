@@ -19,9 +19,11 @@ For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `per
 
 ## Usage
 
+With all commands the input filename `-` refers to stdin and only one file will be read from stdin. It CAN be combined with other filenames however.
+
 `mkmcd thps2-us.mcs tonyhax.mcs card1.mcd > out.mcd` to make a psx memory card `.mcd` file from save(s) in `.mcs` and `.mcs`
 
-`lsmc card.mcd thps2-us.mcs` to print info of save(s) included in `.mcd` and `.mcs`
+`lsmc card.mcd thps2-us.mcs` to print info of save(s) included in `.mcd` and `.mcs`. For convenience is no files are provided, read file from stdin (`-`) is implicitly done.
 
 `mcsaveextract card.mcd [savesubstring] > thps2-us-copy.mcs` to extract single saves (`.mcs`) from `.mcd`
 `mciconextract thps2-us.mcs [savesubstring]> thps2-us.tim` to extract the save icon as TIM. If `.mcd` is provided the first save is extracted.
@@ -33,7 +35,6 @@ Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
 
 ## TODO
 - make tests
-- load from stdin
 - binaries
 - better bat files (Don't hardcode perl path in bat files)
 - mciconextract
