@@ -5,16 +5,6 @@ use File::Spec;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
 
-sub xordirectory {
-	my ($directory) = @_;
-	my @toxor = unpack('C127', $directory);
-	my $xor = 0;
-	foreach my $char (@toxor) {
-        $xor ^= $char; 
-    }
-	return $xor;
-}
-
 my @parentdir = ($FindBin::Bin, '..');
 my @resdir = (@parentdir, 'res');
 
@@ -28,50 +18,37 @@ my $tmplres = read($tmpl, $memcard, 131073);
 # Add each save to the memcard
 my $directoryoffset = 0x80;
 my $savedataoffset = 0x2000;
-my $frames_left = 15;
 foreach my $file (@ARGV) {
-	# read the mcs
-	open(my $fh, '<', $file) or die("failed to open: $file");
-	my $size = -s $fh;
-    (($size - 0x80) % 0x2000) == 0 or die("input file wrong size");
-	my $contents;
-	my $res = read($fh, $contents, $size);
-    ($res && ($res == $size)) or die("failed to read entire file");
-
-	my $directory = substr($contents, 0x00, 0x80, '');
-	my $dirdata = PSX::MC::parse_directory($directory);
-	# determine the number of blocks needed for this save
-	my $blockcount = $dirdata->{'datasize'} / 0x2000;
-	(($blockcount % 1) == 0) or die("not integer blocksize");
-	my $dircount = ($blockcount > 0) ? $blockcount : 1;
-	$frames_left >= $dircount or die("Too much data for one more memory card");
-	
-	
-	# multiblock save, set frame index, and add link blocks
-	if($blockcount > 1) {
-		my $frameindex = 16-$frames_left;
-		# update start block with the correct frame index		
-		substr($directory, 0x8, 0x2, pack('v', $frameindex));
-		substr($directory, 0x7F, 0x1, pack('C', xordirectory($directory)));
-
-		# create midblocks if any
-		while($blockcount > 2) {
-			$frameindex++;			
-			my $block = pack('Cx7vx118', 0x52, $frameindex);
-			substr($block, 0x7F, 0x1, pack('C', 0x52 ^ $frameindex));
-			$directory .= $block;
-			$blockcount--;
-		}
-
-		# create end block
-		$directory .= pack('Cx7vx117C', 0x53, 0xFFFF, 0x53);
+    # load input file
+    my $mcfile = PSX::MC->load($file);
+	if(! $mcfile) {
+		die("unable to load: $file");
+	}
+	elsif($mcfile->{'type'} ne 'mcs') {
+		die("unsupported filetype");
 	}
 
-	substr($memcard, $directoryoffset, length($directory), $directory);
-    substr($memcard, $savedataoffset, length($contents), $contents);	
-	$directoryoffset += (0x80 * $dircount);
-	$savedataoffset += (0x2000 * $dircount);
-	$frames_left -= $dircount;	
+	# read the save from the file
+    my $save = $mcfile->readSave();
+
+	# create the mcd data from the save
+	my $mcdsave = PSX::MC::FormatSaveAsMCD($directoryoffset, $save);
+
+	# verify there is enough space for the save
+    my $newdirspaceneeded = length($mcdsave->{'dirdata'});
+	my $newsavespaceneeded = length($mcdsave->{'savedata'});    
+	if(($newdirspaceneeded + $directoryoffset) > 2048) {
+		die("Too many directory entries");
+	}
+	if(($newsavespaceneeded + $savedataoffset) > 131072) {
+		die("Too much savedata");
+	}
+
+    # copy in the save
+    substr($memcard, $directoryoffset, $newdirspaceneeded, $mcdsave->{'dirdata'});
+    substr($memcard, $savedataoffset, $newsavespaceneeded, $mcdsave->{'savedata'});
+	$directoryoffset += $newdirspaceneeded;
+	$savedataoffset += $newsavespaceneeded;
 }
 
 # output the memory card

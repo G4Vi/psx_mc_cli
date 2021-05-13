@@ -36,10 +36,10 @@ sub print_directory {
     say sprintf("%-8s %-20s %s %-20s %s", $inusestr, $dir->{'codename'}, $linkstr, $datastring, $xorstring);	
 }
 
-sub handleFile {
-	my ($contents, $dataoffset) = @_;
-	my $filebuf = substr($contents, $dataoffset, 0x80);
-	my $fileheader = PSX::MC::parse_file_header($filebuf);
+sub onSave {
+	my ($save) = @_;
+	my $contents = $save->{'data'};
+	my $fileheader = $save->{'header'};
 	say $fileheader->{'title'};
 	
 	# get the clut colors, not currently used
@@ -53,7 +53,7 @@ sub handleFile {
 	}
 
     # print the icon
-	my $foffset = $dataoffset+0x80;
+	my $foffset = 0x80;
 	for(my $i = 0; $i < $fileheader->{'framecnt'}; $i++) {
 		my $framebuf = substr($contents, $foffset, 0x80);		
 		for(my $y = 0; $y < 16; $y++) {
@@ -82,21 +82,20 @@ foreach my $file (@ARGV) {
 		next;
 	}
 	if($mcfile->{'hasdir'}) {
-		my $filestart;
+		my $save = 0;
 		$mcfile->foreachDirEntry(sub {
-			my ($entry, $dataoffset, $entrydata, $i) = @_;
+			my ($entry, $newsave, $entrydata) = @_;			
+            if($newsave != $save) {
+				if($save) {
+					onSave($save);
+				}
+				$save = $newsave;
+			}
 			print_directory($entry);
-			# if the entry has data assocated, save the offset
-			if($entry->{'calcblocks'}) {
-				$filestart = $dataoffset;
-			}
-			# if entry is part of mcs or is a single block save or is and endlink read the file
-			if(($mcfile->{'type'} eq 'mcs') ||
-			((($entry->{'inuse'}== 0x51) && ($entry->{'linkindex'} == 0xFFFF)) || ($entry->{'inuse'} == 0x53))) {
-				handleFile($mcfile->{'contents'}, $filestart);
-				$filestart = '';
-			}
 		});
+		if($save) {
+			onSave($save);
+		}
 	}
 	else {
 		warn("skipping unhandled format");

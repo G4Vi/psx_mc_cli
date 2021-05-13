@@ -82,6 +82,16 @@ sub is_mcs {
 	return (($datasize % 0x2000) == 0);
 }
 
+sub xordirectory {
+	my ($directory) = @_;
+	my @toxor = unpack('C127', $directory);
+	my $xor = 0;
+	foreach my $char (@toxor) {
+        $xor ^= $char; 
+    }
+	return $xor;
+}
+
 
 sub load {
 	my ($class, $filename) = @_;
@@ -135,17 +145,78 @@ sub foreachDirEntry {
 		$maxcount = 15;
 	}	
 
+    my $save;
 	for(my $i = $startindex; $i < ($startindex+$maxcount); $i++) {
 		my $entrydata = substr($self->{'contents'}, ($i * 0x80), 0x80);
 		my $entry = parse_directory($entrydata);
-		$callback->($entry, $dataoffset, $entrydata, $i);
+		if($entry->{'inuse'} == 0x51) {			
+			$save = {
+				'filename' => $entry->{'codename'},
+				'data' => substr($self->{'contents'}, $dataoffset, $entry->{'datasize'}),
+				'header' => parse_file_header(substr($self->{'contents'}, $dataoffset, 0x80))
+			};
+		}
+		$callback->($entry, $save, $entrydata);
+		# remove association to save when the current block isn't a startlink or midblock
+		if (($entry->{'inuse'} != 0x52) && (($entry->{'inuse'} != 0x51) || ($entry->{'linkindex'} == 0xFFFF))) {
+			$save = 0;
+		}
 		$dataoffset += 0x2000;		 
 	}
 }
 
+sub _readMCSSave {
+	my ($self) = @_;
+	my $entrydata = substr($self->{'contents'}, 0, 0x80);
+	my $entry = parse_directory($entrydata);
+
+	return {
+		'filename' => $entry->{'codename'},
+		'savedata' => substr($self->{'contents'}, 0x80, $entry->{'datasize'})
+	};
+}
+
 sub readSave {
-	my ($self, $dataoffset) = @_;
-	my $savedata = substr($self->{'contents'}, $dataoffset, )
+	my ($self) = @_;
+	if($self->{'type'} eq 'mcs') {
+        return _readMCSSave($self);
+	}
+	else {
+		die("unimplemented type");
+	}
+}
+
+sub FormatSaveAsMCD {
+	my ($dirstart, $save) = @_;
+	my $savelen = length($save->{'savedata'});
+	my $blockcount = length($save->{'savedata'}) / 0x2000;
+    (($blockcount % 1) == 0) or die("not integer blocksize");
+	($blockcount >= 1) or die("must have at least one block");
+	my $dirindex = ($dirstart / 0x80);
+	my $blockptr = ($blockcount == 1) ? 0xFFFF : $dirindex;
+	
+	# format the first directory
+	my $directory = pack('VVvZ21x96', 0x51, $savelen, $blockptr, $save->{'filename'});
+    $directory .= pack('C', xordirectory($directory));
+    
+	# format the possible mid and end link directories
+	if($blockcount > 1) {
+		while ($blockcount > 2) {
+			$dirindex++;
+			my $newdir = pack('VVvx117', 0x52, 0x0, $dirindex);
+			$newdir .= pack('C', xordirectory($newdir));
+			$directory .= $newdir;
+			$blockcount--;
+		}
+		my $newdir = pack('VVvx117', 0x53, 0x0, 0xFFFF);
+		$newdir .= pack('C', xordirectory($newdir));
+		$directory .= $newdir;
+	}
+	
+	return {
+		'dirdata'     => $directory,
+		'savedata' => $save->{'savedata'}
+	};	
 }
 
 1;

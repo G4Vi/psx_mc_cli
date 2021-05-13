@@ -8,15 +8,15 @@ use lib "$FindBin::Bin/../lib";
 use PSX::MC;
 
 sub extract_icon {
-	my($contents, $dataoffset) = @_;
-	my $filebuf = substr($contents, $dataoffset, 0x80);
-	my $fileheader = PSX::MC::parse_file_header($filebuf);
+	my($save) = @_;
+    my $fileheader = $save->{'header'};
+	my $contents = $save->{'data'};
 
 	if($fileheader->{'framecnt'} == 0) {
 		warn("Save is invalid, bad icon framecnt read, assuming 1");
 		$fileheader->{'framecnt'} = 1;
 	}
-	my $framedata = substr($contents, $dataoffset+0x80, 0x80*$fileheader->{'framecnt'});
+	my $framedata = substr($contents, 0x80, 0x80*$fileheader->{'framecnt'});
 
 	my $timbuf = '' .
 	pack('V', 0x10) .                                     # magic
@@ -33,34 +33,20 @@ sub extract_icon {
 @ARGV >= 1 or die('not enough args provided');
 
 my $file = $ARGV[0];
-open(my $fh, '<', $file) or die("failed to open: $file");
-my $contents;
-my $res = read($fh, $contents, 131073);
-(defined($res) && ($res <= 131072)) or die("input file wrong size");
-my $ismcd = PSX::MC::is_mcd($contents);
-my $ismcs = PSX::MC::is_mcs($contents);	
-
-if($ismcd) {
-	my $dataoffset = 0x2000;
-	for(my $directoryoffset = 128; $directoryoffset < 2048;) {
-		my $directory = substr($contents, $directoryoffset, 0x80);
-		my $dir = PSX::MC::parse_directory($directory);
-		my $incblocks = 1;
-		if($dir->{'calcblocks'}) {
-			extract_icon($contents, $dataoffset);
-			exit 0;
-			$incblocks = $dir->{'calcblocks'};
-		}
-		$directoryoffset += ($incblocks * 128);
-	    $dataoffset += ($incblocks * 0x2000);
-	}
-	die("Didn't find a valid save");			
+my $mcfile = PSX::MC->load($file);
+if(! $mcfile) {
+	die("unable to load: $file");
 }
-elsif($ismcs) {
-	extract_icon($contents, 0x80);
-    exit 0;
+if($mcfile->{'hasdir'}) {
+	$mcfile->foreachDirEntry(sub {
+		my ($entry, $newsave, $entrydata) = @_;
+		if($newsave) {
+			extract_icon($newsave);
+			exit 0;
+		}       
+	});	
 }
 else {
-	die("Invalid input format");
+	die("unhandled format");
 }
 
