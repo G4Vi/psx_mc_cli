@@ -174,8 +174,8 @@ sub readSave {
 
 sub FormatSaveAsMCD {
 	my ($dirstart, $save) = @_;
-	my $savelen = length($save->{'savedata'});
-	my $blockcount = length($save->{'savedata'}) / 0x2000;
+	my $savelen = length($save->{'data'});
+	my $blockcount = length($save->{'data'}) / 0x2000;
     (($blockcount % 1) == 0) or die("not integer blocksize");
 	($blockcount >= 1) or die("must have at least one block");
 	my $dirindex = ($dirstart / 0x80);
@@ -201,7 +201,7 @@ sub FormatSaveAsMCD {
 	
 	return {
 		'dirdata'     => $directory,
-		'savedata' => $save->{'savedata'}
+		'savedata' => $save->{'data'}
 	};	
 }
 

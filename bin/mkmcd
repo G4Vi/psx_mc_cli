@@ -24,31 +24,42 @@ foreach my $file (@ARGV) {
 	if(! $mcfile) {
 		die("unable to load: $file");
 	}
-	elsif($mcfile->{'type'} ne 'mcs') {
+	my @saves;
+	if($mcfile->{'type'} eq 'mcd') {
+		$mcfile->foreachDirEntry(sub {
+			my ($entry, $newsave, $entrydata) = @_;
+			if($newsave) {
+				push @saves, $newsave;
+			}			
+		});
+	}	
+	elsif($mcfile->{'type'} eq 'mcs') {
+		push @saves, $mcfile->readSave();
+	}
+	else {
 		die("unsupported filetype");
 	}
 
-	# read the save from the file
-    my $save = $mcfile->readSave();
-
-	# create the mcd data from the save
-	my $mcdsave = PSX::MC::FormatSaveAsMCD($directoryoffset, $save);
-
-	# verify there is enough space for the save
-    my $newdirspaceneeded = length($mcdsave->{'dirdata'});
-	my $newsavespaceneeded = length($mcdsave->{'savedata'});    
-	if(($newdirspaceneeded + $directoryoffset) > 2048) {
-		die("Too many directory entries");
-	}
-	if(($newsavespaceneeded + $savedataoffset) > 131072) {
-		die("Too much savedata");
-	}
-
-    # copy in the save
-    substr($memcard, $directoryoffset, $newdirspaceneeded, $mcdsave->{'dirdata'});
-    substr($memcard, $savedataoffset, $newsavespaceneeded, $mcdsave->{'savedata'});
-	$directoryoffset += $newdirspaceneeded;
-	$savedataoffset += $newsavespaceneeded;
+	foreach my $save (@saves) {
+		# create the mcd data from the save
+	    my $mcdsave = PSX::MC::FormatSaveAsMCD($directoryoffset, $save);
+    
+	    # verify there is enough space for the save
+        my $newdirspaceneeded = length($mcdsave->{'dirdata'});
+	    my $newsavespaceneeded = length($mcdsave->{'savedata'});    
+	    if(($newdirspaceneeded + $directoryoffset) > 2048) {
+	    	die("Too many directory entries");
+	    }
+	    if(($newsavespaceneeded + $savedataoffset) > 131072) {
+	    	die("Too much savedata");
+	    }
+    
+        # copy in the save
+        substr($memcard, $directoryoffset, $newdirspaceneeded, $mcdsave->{'dirdata'});
+        substr($memcard, $savedataoffset, $newsavespaceneeded, $mcdsave->{'savedata'});
+	    $directoryoffset += $newdirspaceneeded;
+	    $savedataoffset += $newsavespaceneeded;
+	}	
 }
 
 # output the memory card

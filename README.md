@@ -5,9 +5,9 @@ Requires perl.
 
 ## *nix
 
-Just add the `bin` dir to PATH.
+Just add the `bin` dir to PATH. On debian, add the bottom to `~/.profile`
 
-`export PATH=$PATH:wherever_psx_mc_cli_bin_dir_is`
+`export PATH=$PATH:wherever/psx_mc_cli/bin`
 
 ## Windows
 
@@ -19,25 +19,25 @@ For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `per
 
 ## Usage
 
-`mkmcd thps2-us.mcs tonyhax.mcs > out.mcd` to make a psx memory card `.mcd` file
+`mkmcd thps2-us.mcs tonyhax.mcs card1.mcd > out.mcd` to make a psx memory card `.mcd` file from save(s) in `.mcs` and `.mcs`
 
 `lsmc card.mcd thps2-us.mcs` to print info of save(s) included in `.mcd` and `.mcs`
 
-`unmcd card.mcd BESLEM-99999TONYHAX > thps2-us-copy.mcs` to extract single saves (`.mcs`) from `.mcd`
+`mcsaveextract card.mcd [savesubstring] > thps2-us-copy.mcs` to extract single saves (`.mcs`) from `.mcd`
+`mciconextract thps2-us.mcs [savesubstring]> thps2-us.tim` to extract the save icon as TIM. If `.mcd` is provided the first save is extracted.
 
-`mciconextract thps2-us.mcs > thps2-us.tim` to extract the save icon as TIM. If `.mcd` is provided the first save is extracted.
+`savesubstring` param only used for .`mcd`, it can be the string or case insensitive substring of the save's filename i.e `BESLEM-99999TONYHAX` or title i.e. `ＴＯＮＹＨＡＸ　ＳＰＬ` or title in ascii if applicable i.e. `TONYHAX SPL`
+
 
 ## TODO
 - make tests
-- share code between utilities
+- load from stdin
+- binaries
+- better bat files (Don't hardcode perl path in bat files)
 - mciconextract
-    - allow specifying save name
-    - bat file on Windows
     - extract CLUT as C array
 - lsmc
     - nonverbose mode
     - direntry only mode
     - Improve terminal save icon graphics
-- Don't hardcode perl path in bat files
-- Change `unmcd` to be more intuitive, maybe rename `mkmcd`?
 - other memory card formats such as raw saves
