@@ -1,8 +1,10 @@
 #!/usr/bin/perl
 use strict; use warnings;
+use Encode qw(decode);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
+binmode(STDERR, "encoding(UTF-8)");
 (@ARGV >= 1) or die("No mcd provided");
 
 # load the memory card
@@ -15,11 +17,23 @@ elsif($mcfile->{'type'} ne 'mcd') {
 	die("Unsupported input format");
 }
 
-my $searchfname = $ARGV[1];
+my $searchfname;
+decode('utf8', $ARGV[1]) if (@ARGV >= 2);
 $mcfile->foreachDirEntry(sub {
 	my ($entry, $newsave, $entrydata) = @_;
 	return if(! $newsave);
-	if(!$searchfname || ($newsave->{'filename'} eq $searchfname)) {
+	
+	$newsave->{'header'} = PSX::MC::parse_file_header($newsave->{'data'});
+	my $title = $newsave->{'header'}{'title'};	
+	my $asciititle = $title;
+	$asciititle =~ tr/\x{3000}\x{FF01}-\x{FF5E}/ -~/; # fullwidth to half-width if possible
+	#warn("title: $title");
+	#warn("searchfname: $searchfname");
+	#warn("asciititle: $asciititle");
+	# we found the save if no savename specified or filename specifed or title specified
+	if(!$searchfname || 
+	($newsave->{'filename'} eq $searchfname) || ($title eq $searchfname) || ($asciititle eq $searchfname) ||
+	($newsave->{'filename'} =~ /\Q$searchfname\E/i) || ($title =~ /\Q$searchfname\E/i) || ($asciititle =~ /\Q$searchfname\E/i)) {
 		my $mcs = $entrydata . $newsave->{'data'};
 		print $mcs;
 		exit 0;	
