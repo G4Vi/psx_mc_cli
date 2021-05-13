@@ -28,6 +28,8 @@ For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `per
 
 `savesubstring` param only used for .`mcd`, it can be the string or case insensitive substring of the save's filename i.e `BESLEM-99999TONYHAX` or title i.e. `ＴＯＮＹＨＡＸ　ＳＰＬ` or title in ascii if applicable i.e. `TONYHAX SPL`
 
+## License
+Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
 
 ## TODO
 - make tests

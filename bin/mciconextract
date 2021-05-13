@@ -1,11 +1,15 @@
 #!/usr/bin/perl
 
+# Copyright (c) 2021 Gavin Hayes and others, see LICENSE in the root of the project
+
 use strict; use warnings;
 use feature 'say';
 use Encode qw(decode);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
+
+
 
 sub extract_icon {
 	my($save) = @_;

@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+
+# Copyright (c) 2021 Gavin Hayes and others, see LICENSE in the root of the project
+
 use strict; use warnings;
 use FindBin;
 use File::Spec;
