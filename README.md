@@ -30,6 +30,8 @@ With all commands the input filename `-` refers to stdin and only one file will 
 
 `savesubstring` param only used for .`mcd`, it can be the string or case insensitive substring of the save's filename i.e `BESLEM-99999TONYHAX` or title i.e. `ＴＯＮＹＨＡＸ　ＳＰＬ` or title in ascii if applicable i.e. `TONYHAX SPL`
 
+`mciconextract` can also dump the Color LookUp Table of the save icon as a `uint16_t[16]` with `--cclut`
+
 ## License
 Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
 
@@ -37,8 +39,6 @@ Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
 - make tests
 - binaries
 - better bat files (Don't hardcode perl path in bat files)
-- mciconextract
-    - extract CLUT as C array
 - lsmc
     - nonverbose mode
     - direntry only mode

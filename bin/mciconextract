@@ -5,11 +5,11 @@
 use strict; use warnings;
 use feature 'say';
 use Encode qw(decode);
+use Getopt::Long qw(GetOptions);
+Getopt::Long::Configure qw(gnu_getopt);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
-
-
 
 sub extract_icon {
 	my($save) = @_;
@@ -33,6 +33,12 @@ sub extract_icon {
 	pack('a*', $framedata);	                              # actual image
     print $timbuf;
 }
+
+my $dumpclut;
+GetOptions(
+    'cclut|c' => \$dumpclut,
+) or die "Usage: $0 inputfile [savesubstring] [--cclut]\n";
+
 
 @ARGV >= 1 or die('not enough args provided');
 
@@ -66,5 +72,17 @@ else {
 my $save = shift @saves;
 $save or die("no save found to extract icon");
 $save->{'header'} = PSX::MC::parse_file_header($save->{'data'});
-extract_icon($save);
+if(! $dumpclut) {
+	extract_icon($save);
+}
+else {
+	my $cfile = "#include <stdint.h>\n\n";
+	$cfile .= "static const uint16_t PALETTE[16] = {";
+	for my $color (@{$save->{'header'}{'clut'}}) {
+		$cfile .= sprintf(" 0x%04X,", $color);
+	}
+	chop $cfile;
+	$cfile .= " };\n";
+	print $cfile;
+}
 
