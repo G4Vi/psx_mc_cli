@@ -173,10 +173,23 @@ sub _readMCSSave {
 	};
 }
 
+sub _readRawSave {
+	my ($self) = @_;
+	($self->{'filename'} ne 'STDIN') or die("cannot read raw save without a filename");
+	return {
+		'filename' => $self->{'filename'},
+		'data' => $self->{'contents'}
+	};
+}
+
+
 sub readSave {
 	my ($self) = @_;
 	if($self->{'type'} eq 'mcs') {
         return _readMCSSave($self);
+	}
+	elsif($self->{'type'} eq 'rawsave') {
+		return _readRawSave($self);
 	}
 	else {
 		die("unimplemented type");

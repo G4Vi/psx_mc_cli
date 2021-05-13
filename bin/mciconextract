@@ -61,7 +61,7 @@ if($mcfile->{'type'} eq 'mcd') {
 		}
 	});	
 }
-elsif($mcfile->{'type'} eq 'mcs') {
+elsif(($mcfile->{'type'} eq 'mcs') ||($mcfile->{'type'} eq 'rawsave'))  {
 	my $save = $mcfile->readSave();
 	push @saves, $save;
 }
