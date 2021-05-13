@@ -5,6 +5,7 @@ package PSX::MC;
 use strict;
 use warnings;
 use Encode qw(decode encode);
+use File::Basename;
 
 sub parse_directory {
 	my ($directory) = @_;
@@ -96,7 +97,7 @@ sub xordirectory {
 
 
 sub load {
-	my ($class, $filename) = @_;
+	my ($class, $filename, $overridefilename) = @_;
 	
 	my $fh;
 	if($filename ne '-') {
@@ -120,8 +121,10 @@ sub load {
 	}
 	elsif(($res <= (15*0x2000)) && ($res >= 0x2000) && (($res % 0x2000) == 0)) {
 		$self{'type'} = 'rawsave';
+		my $filecodename = ($filename ne 'STDIN') ? basename($filename) : undef;
+		$self{'codename'} = $overridefilename ? $overridefilename : $filecodename;
 	}
-	elsif(substr($res, 0, 2) == 'MC') {
+	elsif(substr($res, 0, 2) eq 'MC') {
 		warn("File starts with MC, but filesize is $res. Assuming type is mcd");
 		$self{'type'} = 'mcd';		
 	}
@@ -175,9 +178,9 @@ sub _readMCSSave {
 
 sub _readRawSave {
 	my ($self) = @_;
-	($self->{'filename'} ne 'STDIN') or die("cannot read raw save without a filename");
+	$self->{'codename'} or die("cannot read raw save without a filename");
 	return {
-		'filename' => $self->{'filename'},
+		'filename' => $self->{'codename'},
 		'data' => $self->{'contents'}
 	};
 }
@@ -196,18 +199,24 @@ sub readSave {
 	}
 }
 
-sub FormatSaveAsMCD {
-	my ($dirstart, $save) = @_;
+sub FormatSaveFirstDirEntry {
+	my ($save, $dirindex) = @_;
 	my $savelen = length($save->{'data'});
 	my $blockcount = length($save->{'data'}) / 0x2000;
     (($blockcount % 1) == 0) or die("not integer blocksize");
 	($blockcount >= 1) or die("must have at least one block");
-	my $dirindex = ($dirstart / 0x80);
-	my $blockptr = ($blockcount == 1) ? 0xFFFF : $dirindex;
-	
-	# format the first directory
+	my $blockptr = ($blockcount == 1) ? 0xFFFF : $dirindex;	
 	my $directory = pack('VVvZ21x96', 0x51, $savelen, $blockptr, $save->{'filename'});
-    $directory .= pack('C', xordirectory($directory));
+    $directory .= pack('C', xordirectory($directory));    
+
+	return ($directory, $blockcount);
+}
+
+sub FormatSaveAsMCD {
+	my ($dirstart, $save) = @_;
+
+	my $dirindex = ($dirstart / 0x80);
+	my ($directory, $blockcount) = FormatSaveFirstDirEntry($save, $dirindex);
     
 	# format the possible mid and end link directories
 	if($blockcount > 1) {
@@ -227,6 +236,12 @@ sub FormatSaveAsMCD {
 		'dirdata'     => $directory,
 		'savedata' => $save->{'data'}
 	};	
+}
+
+sub FormatSaveAsMCS {
+	my ($save) = @_;
+    my ($directory, $blockcount) = FormatSaveFirstDirEntry($save, 1);
+	return $directory .= $save->{'data'};
 }
 
 sub SaveNameAndTitleMatch {

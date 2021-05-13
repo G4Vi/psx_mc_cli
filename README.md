@@ -25,10 +25,12 @@ With all commands the input filename `-` refers to stdin and only one file will 
 
 `lsmc card.mcd thps2-us.mcs BESLEM-99999TONYHAX` to print info of save(s) included in `.mcd`, `.mcs`, and raw saves. For convenience is no files are provided, read file from stdin (`-`) is implicitly done.
 
+`raw2mcs RAWSAVE > out.mcs` to convert a raw save to `.mcs`. Add `-o NAME` if you need to override the filename to be stored in the `.mcs`.
+
 `mcsaveextract card.mcd [savesubstring] > thps2-us-copy.mcs` to extract single saves as `.mcs` from `.mcd`
 `mciconextract thps2-us.mcs [savesubstring]> thps2-us.tim` to extract the save icon as TIM. 
 
-If `.mcd` is provided without `savesubstring` the first save is extracted. The `savesubstring` param only used for .`mcd`, it can be the string or case insensitive substring of the save's filename i.e `BESLEM-99999TONYHAX` or title i.e. `ＴＯＮＹＨＡＸ　ＳＰＬ` or title in ascii if applicable i.e. `TONYHAX SPL`
+If `.mcd` is provided without `savesubstring` the first save is extracted. The `savesubstring` param  is only used for .`mcd`, it can be the string or case insensitive substring of the save's filename i.e `BESLEM-99999TONYHAX` or title i.e. `ＴＯＮＹＨＡＸ　ＳＰＬ` or title in ascii if applicable i.e. `TONYHAX SPL`
 
 `mciconextract` can also dump the Color LookUp Table of the save icon as a `uint16_t[16]` with `--cclut`
 

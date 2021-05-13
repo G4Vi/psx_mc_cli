@@ -28,7 +28,7 @@ $mcfile->foreachDirEntry(sub {
 
     # find the save
 	if(PSX::MC::SaveNameAndTitleMatch($newsave, $searchfname)) {
-		my $mcs = $entrydata . $newsave->{'data'};
+		my $mcs = PSX::MC::FormatSaveAsMCS($newsave);
 		print $mcs;
 		exit 0;	
 	}
