@@ -27,6 +27,8 @@ With all commands the input filename `-` refers to stdin and only one file will 
 
 `raw2mcs RAWSAVE > out.mcs` to convert a raw save to `.mcs`. Add `-o NAME` if you need to override the filename to be stored in the `.mcs`.
 
+`mcs2raw in.mcs` to convert a `.mcs` to a raw save. Add `-p PATHNAME` to set the output filepath (note this doesn't store the save filename) OR add `-d OUTDIR` to set where to store the raw save. 
+
 `mcsaveextract card.mcd [savesubstring] > thps2-us-copy.mcs` to extract single saves as `.mcs` from `.mcd`
 `mciconextract thps2-us.mcs [savesubstring]> thps2-us.tim` to extract the save icon as TIM. 
 
@@ -37,12 +39,11 @@ If `.mcd` is provided without `savesubstring` the first save is extracted. The `
 ## License
 Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
 
-## TODO
-- make tests
+## Needed
+- automated tests
 - binaries
 - better bat files (Don't hardcode perl path in bat files)
 - lsmc
     - nonverbose mode
     - direntry only mode
     - Improve terminal save icon graphics
-- other memory card formats such as raw saves

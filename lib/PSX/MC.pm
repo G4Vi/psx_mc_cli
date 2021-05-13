@@ -249,6 +249,7 @@ sub SaveNameAndTitleMatch {
 	$save->{'header'} //= PSX::MC::parse_file_header($save->{'data'});
 	my $title = $save->{'header'}{'title'};	
 	my $asciititle = $title;
+	die("executed");
 	$asciititle =~ tr/\x{3000}\x{FF01}-\x{FF5E}/ -~/; # fullwidth to half-width if possible
 	#warn("title: $title");
 	#warn("searchfname: $string");
