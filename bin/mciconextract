@@ -37,16 +37,28 @@ my $mcfile = PSX::MC->load($file);
 if(! $mcfile) {
 	die("unable to load: $file");
 }
-if($mcfile->{'hasdir'}) {
+
+my @saves;
+# read in the saves, print out the directories if mcd
+if($mcfile->{'type'} eq 'mcd') {
+	my $save = 0;
 	$mcfile->foreachDirEntry(sub {
-		my ($entry, $newsave, $entrydata) = @_;
-		if($newsave) {
-			extract_icon($newsave);
-			exit 0;
-		}       
+		my ($entry, $newsave, $entrydata) = @_;			
+        if($newsave && ($newsave != $save)) {
+			push @saves, $newsave;
+			$save = $newsave;
+			last;
+		}
 	});	
+}
+elsif($mcfile->{'type'} eq 'mcs') {
+	my $save = $mcfile->readSave();
+	push @saves, $save;
 }
 else {
 	die("unhandled format");
 }
 
+my $save = shift @saves;
+$save->{'header'} = PSX::MC::parse_file_header($save->{'data'});
+extract_icon($save);

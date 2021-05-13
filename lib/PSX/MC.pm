@@ -32,7 +32,6 @@ sub parse_directory {
 	};
 }
 
-
 sub parse_file_header {
 	my ($file) = @_;
 	my $id = unpack('a2', $file);
@@ -127,40 +126,27 @@ sub load {
 	return \%self;
 }
 
+# loop through the directory entries of a MCD file, calling callback for each one
+# if it's a startblock read in the save as pass it to the callback
 sub foreachDirEntry {
 	my ($self, $callback) = @_;
-	(($self->{'type'} eq 'mcd') || ($self->{'type'} eq 'mcs')) or die("Unhandled filetype");
+	($self->{'type'} eq 'mcd') or die("Unhandled filetype");
 
-    my $startindex;
-	my $dataoffset;
-	my $maxcount;
-	if($self->{'type'} eq 'mcs') {
-		$startindex = 0;
-		$dataoffset = 0x80;
-		$maxcount = 1;
-	}
-	elsif($self->{'type'} eq 'mcd') {
-		$startindex = 1;
-		$dataoffset = 0x2000;
-		$maxcount = 15;
-	}	
-
-    my $save;
+    my $startindex = 1;
+	my $dataoffset = 0x2000;
+	my $maxcount = 15;
+    
 	for(my $i = $startindex; $i < ($startindex+$maxcount); $i++) {
 		my $entrydata = substr($self->{'contents'}, ($i * 0x80), 0x80);
 		my $entry = parse_directory($entrydata);
+		my $save;
 		if($entry->{'inuse'} == 0x51) {			
 			$save = {
 				'filename' => $entry->{'codename'},
 				'data' => substr($self->{'contents'}, $dataoffset, $entry->{'datasize'}),
-				'header' => parse_file_header(substr($self->{'contents'}, $dataoffset, 0x80))
 			};
 		}
 		$callback->($entry, $save, $entrydata);
-		# remove association to save when the current block isn't a startlink or midblock
-		if (($entry->{'inuse'} != 0x52) && (($entry->{'inuse'} != 0x51) || ($entry->{'linkindex'} == 0xFFFF))) {
-			$save = 0;
-		}
 		$dataoffset += 0x2000;		 
 	}
 }
@@ -172,7 +158,7 @@ sub _readMCSSave {
 
 	return {
 		'filename' => $entry->{'codename'},
-		'savedata' => substr($self->{'contents'}, 0x80, $entry->{'datasize'})
+		'data' => substr($self->{'contents'}, 0x80, $entry->{'datasize'})
 	};
 }
 

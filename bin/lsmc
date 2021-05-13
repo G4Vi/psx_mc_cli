@@ -6,7 +6,7 @@ Getopt::Long::Configure qw(gnu_getopt);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
-#use Devel::Peek;
+use Devel::Peek;
 
 sub print_directory {
 	my ($dir) = @_;	 
@@ -40,7 +40,8 @@ sub onSave {
 	my ($save) = @_;
 	my $contents = $save->{'data'};
 	my $fileheader = $save->{'header'};
-	say $fileheader->{'title'};
+	my $blockcount = length($contents) / 0x2000;
+	say sprintf("%-20s %-40s %u", $save->{'filename'}, $fileheader->{'title'}, $blockcount);
 	
 	# get the clut colors, not currently used
 	my $red_mask = 0x1F;
@@ -73,7 +74,6 @@ binmode(STDOUT, "encoding(UTF-8)");
 #    'data|d' => \$data,
 #) or die "Usage: $0 --data\n";
 
-# print the saves
 foreach my $file (@ARGV) {
 	say "$file:";
 	my $mcfile = PSX::MC->load($file);
@@ -81,24 +81,34 @@ foreach my $file (@ARGV) {
 		warn("unable to load: $file");
 		next;
 	}
-	if($mcfile->{'hasdir'}) {
-		my $save = 0;
+	my @saves;
+	# read in the saves, print out the directories if mcd
+	if($mcfile->{'type'} eq 'mcd') {
 		$mcfile->foreachDirEntry(sub {
 			my ($entry, $newsave, $entrydata) = @_;			
-            if($newsave != $save) {
-				if($save) {
-					onSave($save);
-				}
-				$save = $newsave;
+            if($newsave) {
+				push @saves, $newsave;
 			}
 			print_directory($entry);
 		});
-		if($save) {
-			onSave($save);
-		}
+		print("\n");		
+	}
+	elsif($mcfile->{'type'} eq 'mcs') {
+		my $save = $mcfile->readSave();
+		push @saves, $save;
 	}
 	else {
 		warn("skipping unhandled format");
+		print("\n");
+		next;
+	}
+    
+	# print out the saves
+	say sprintf("%-20s %-40s %12s", 'filename', 'title', 'blockcount');
+	for my $save (@saves) {
+		$save->{'header'} = PSX::MC::parse_file_header($save->{'data'});
+		onSave($save);
+		print("\n");
 	}
 
 	print "\n";
