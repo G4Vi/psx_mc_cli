@@ -205,4 +205,18 @@ sub FormatSaveAsMCD {
 	};	
 }
 
+sub SaveNameAndTitleMatch {
+	my ($save, $string) = @_;
+	$save->{'header'} //= PSX::MC::parse_file_header($save->{'data'});
+	my $title = $save->{'header'}{'title'};	
+	my $asciititle = $title;
+	$asciititle =~ tr/\x{3000}\x{FF01}-\x{FF5E}/ -~/; # fullwidth to half-width if possible
+	#warn("title: $title");
+	#warn("searchfname: $string");
+	#warn("asciititle: $asciititle");
+	return (!$string || 
+	($save->{'filename'} eq $string) || ($title eq $string) || ($asciititle eq $string) ||
+	($save->{'filename'} =~ /\Q$string\E/i) || ($title =~ /\Q$string\E/i) || ($asciititle =~ /\Q$string\E/i));
+}
+
 1;

@@ -2,7 +2,7 @@
 
 use strict; use warnings;
 use feature 'say';
-
+use Encode qw(decode);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
@@ -38,14 +38,16 @@ if(! $mcfile) {
 	die("unable to load: $file");
 }
 
+my $searchfname;
+$searchfname = decode('utf8', $ARGV[1]) if (@ARGV >= 2);
 my @saves;
-# read in the saves, print out the directories if mcd
+# find a valid save
 if($mcfile->{'type'} eq 'mcd') {
 	$mcfile->foreachDirEntry(sub {
 		my ($entry, $newsave, $entrydata) = @_;			
-        if($newsave) {
+        if($newsave && PSX::MC::SaveNameAndTitleMatch($newsave, $searchfname)) {
 			push @saves, $newsave;
-			last;
+			return;
 		}
 	});	
 }
@@ -58,5 +60,7 @@ else {
 }
 
 my $save = shift @saves;
+$save or die("no save found to extract icon");
 $save->{'header'} = PSX::MC::parse_file_header($save->{'data'});
 extract_icon($save);
+

@@ -18,22 +18,13 @@ elsif($mcfile->{'type'} ne 'mcd') {
 }
 
 my $searchfname;
-decode('utf8', $ARGV[1]) if (@ARGV >= 2);
+$searchfname = decode('utf8', $ARGV[1]) if (@ARGV >= 2);
 $mcfile->foreachDirEntry(sub {
 	my ($entry, $newsave, $entrydata) = @_;
-	return if(! $newsave);
-	
-	$newsave->{'header'} = PSX::MC::parse_file_header($newsave->{'data'});
-	my $title = $newsave->{'header'}{'title'};	
-	my $asciititle = $title;
-	$asciititle =~ tr/\x{3000}\x{FF01}-\x{FF5E}/ -~/; # fullwidth to half-width if possible
-	#warn("title: $title");
-	#warn("searchfname: $searchfname");
-	#warn("asciititle: $asciititle");
-	# we found the save if no savename specified or filename specifed or title specified
-	if(!$searchfname || 
-	($newsave->{'filename'} eq $searchfname) || ($title eq $searchfname) || ($asciititle eq $searchfname) ||
-	($newsave->{'filename'} =~ /\Q$searchfname\E/i) || ($title =~ /\Q$searchfname\E/i) || ($asciititle =~ /\Q$searchfname\E/i)) {
+	return if(! $newsave);	
+
+    # find the save
+	if(PSX::MC::SaveNameAndTitleMatch($newsave, $searchfname)) {
 		my $mcs = $entrydata . $newsave->{'data'};
 		print $mcs;
 		exit 0;	
