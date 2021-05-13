@@ -41,12 +41,10 @@ if(! $mcfile) {
 my @saves;
 # read in the saves, print out the directories if mcd
 if($mcfile->{'type'} eq 'mcd') {
-	my $save = 0;
 	$mcfile->foreachDirEntry(sub {
 		my ($entry, $newsave, $entrydata) = @_;			
-        if($newsave && ($newsave != $save)) {
+        if($newsave) {
 			push @saves, $newsave;
-			$save = $newsave;
 			last;
 		}
 	});	

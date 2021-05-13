@@ -1,33 +1,29 @@
 #!/usr/bin/perl
 use strict; use warnings;
-
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use PSX::MC;
 (@ARGV >= 1) or die("No mcd provided");
 
-# read in the memory card
-open(my $tmpl, '<', $ARGV[0]) or die("failed to open template");
-my $memcard;
-my $cardres = read($tmpl, $memcard, 131073);
-($cardres && ($cardres == 131072)) or die("wrong mcd size");
+# load the memory card
+my $file = $ARGV[0];
+my $mcfile = PSX::MC->load($file);
+if(!$mcfile) {
+	die("Failed to open $file");
+}
+elsif($mcfile->{'type'} ne 'mcd') {
+	die("Unsupported input format");
+}
 
-my $directoryoffset = 0x80;
-my $savedataoffset = 0x2000;
-my $savename = $ARGV[1];
-
-# loop through the saves
-while(1) {
-	my $directory = substr($memcard, $directoryoffset, 0x80);
-    unpack('C', substr($directory, 0x7F, 0x1)) != 0xA0 or last;
-	my $datasize = unpack('V', substr($directory, 0x4, 0x4));
-	my $directorysize = ($datasize / 0x2000) * 0x80;
-	if(!$savename || (substr($directory, 0xA, 19) eq $savename)) {
-		my $mcs = $directory;		
-		$mcs .= substr($memcard, $savedataoffset, $datasize);
+my $searchfname = $ARGV[1];
+$mcfile->foreachDirEntry(sub {
+	my ($entry, $newsave, $entrydata) = @_;
+	return if(! $newsave);
+	if(!$searchfname || ($newsave->{'filename'} eq $searchfname)) {
+		my $mcs = $entrydata . $newsave->{'data'};
 		print $mcs;
 		exit 0;	
 	}
-    
-    $directoryoffset += $directorysize;
-    $savedataoffset += $datasize;	
-}
+});	
 warn "Failed to extract save";
 exit 1;
