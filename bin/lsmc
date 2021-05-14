@@ -9,7 +9,6 @@ Getopt::Long::Configure qw(gnu_getopt);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PSX::MC;
-use Devel::Peek;
 
 sub print_directory {
 	my ($dir) = @_;	 
