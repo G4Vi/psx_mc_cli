@@ -1,21 +1,26 @@
 # psx_mc_cli
 Crossplatform cli utilities for working with PSX memory card files
 
-Requires perl.
+## Install
 
-## *nix
+### *nix
 
-Just add the `bin` dir to PATH. On debian, add the bottom to `~/.profile`
+`git clone`, Just add the `bin` dir to PATH. On debian, add the bottom to `~/.profile`
 
 `export PATH=$PATH:wherever/psx_mc_cli/bin`
 
-## Windows
+### Windows: run from source
 
-Git for Windows has a usable perl environment if needed. For using the utils from Git BASH see the *nix notes.
+`git clone`
 
-For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `perl` and `bin_cmd` to your PATH.
+Git for Windows comes with Perl, but otherwise Strawberry Perl is recommended. For using the utils from Git BASH see the *nix notes to add it to that PATH.
 
+For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `perl` and `bin_cmd` to your `PATH`.
 `Start` -> `View advanced system settings` -> `Advanced` -> `Environment Variables` select `Path` and edit.
+
+### Windows: Binaries
+
+If setting up a Perl environment isn't desired, prepackaged binaries are in releases. See above for how to add a dir to `PATH`.
 
 ## Usage
 
@@ -41,8 +46,6 @@ Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
 
 ## Needed
 - automated tests
-- binaries
-- better bat files (Don't hardcode perl path in bat files)
 - lsmc
     - nonverbose mode
     - direntry only mode

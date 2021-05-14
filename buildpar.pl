@@ -3,9 +3,11 @@
 use strict; use warnings;
 use feature 'say';
 use FindBin;
+use File::Copy;
+
 
 my $indir = "$FindBin::Bin/bin";
-my $outdir = "$FindBin::Bin/compiled";
+my $outdir = "$FindBin::Bin/compiled/psx_mc_cli";
 
 #opendir(my $dh, $indir) || die "Can't open $indir: $!";
 #my @scripts;
@@ -19,7 +21,11 @@ my $outdir = "$FindBin::Bin/compiled";
 opendir(my $dh, $indir) || die "Can't open $indir: $!";
 while (readdir $dh) {
     next if($_ =~ /^\.{1,2}$/);
-    system('pp', '-u', '-B', '-o', "$outdir/psx_mc_cli/$_.exe", "$indir/$_") == 0 or die("Failed to package");
+    system('pp', '-u', '-B', '-o', "$outdir/$_.exe", "$indir/$_") == 0 or die("Failed to package");
 }
 closedir $dh;
+
+copy("README.md", "$outdir/README.md");
+copy("LICENSE", "$outdir/LICENSE");
+
 say "all exes built";
