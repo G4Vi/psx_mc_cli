@@ -1,2 +1,8 @@
 @echo off
-"C:\Program Files\Git\usr\bin\perl.exe" "-I" "%~dp0..\lib" "%~dp0..\bin\mkmcd" %*
+where /q perl
+IF ERRORLEVEL 1 (
+SET "PERLEXE=C:\Program Files\Git\usr\bin\perl.exe"
+) ELSE (
+SET "PERLEXE=perl"
+)
+"%PERLEXE%" "-I" "%~dp0..\lib" "%~dp0..\bin\mkmcd" %*
