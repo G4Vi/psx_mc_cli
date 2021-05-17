@@ -35,8 +35,10 @@ sub extract_icon {
 }
 
 my $dumpclut;
+my $cdata;
 GetOptions(
     'cclut|c' => \$dumpclut,
+	'cdata|d' => \$cdata
 ) or die "Usage: $0 inputfile [savesubstring] [--cclut]\n";
 
 
@@ -72,8 +74,42 @@ else {
 my $save = shift @saves;
 $save or die("no save found to extract icon");
 $save->{'header'} = PSX::MC::parse_file_header($save->{'data'});
-if(! $dumpclut) {
+if(! $dumpclut && ! $cdata) {
 	extract_icon($save);
+}
+elsif(! $dumpclut) {
+	my $cfile = "#include <stdint.h>\n\n";
+	#my $red_mask = 0x1F;
+    #my $green_mask = 0x3E0;
+    #my $blue_mask = 0x7C00;
+	#$cfile .= "static const uint8_t PALETTE[16][3] = {";
+	#for my $rgb555 (@{$save->{'header'}{'clut'}}) {
+	#	my $red = ($rgb555 & $red_mask) << 3;
+	#	my $green = (($rgb555 & $green_mask) >> 5) << 3;
+	#	my $blue = (($rgb555 & $blue_mask) >> 10) << 3;
+	#	$cfile .= sprintf(" {0x%02X, 0x%02X, 0x%02X},", $red, $green, $blue);
+	#}
+	my $fcount = $save->{'header'}{'framecnt'};
+	my $contents = $save->{'data'};
+    $cfile .= 'static const uint8_t IMDATA[' . $fcount . "][16][16] = {";
+	for(my $i = 0; $i < $fcount; $i++) {
+		$cfile .= "\n{";
+		my $frame = substr($contents, (($i+1) * 0x80), 0x80);
+		for(my $y = 0; $y < 16; $y++) {
+			$cfile .= "\n";
+			for(my $x = 0; $x < 16; $x++) {
+				my $ch = vec($frame, ($y * 16)+$x, 4);
+				$cfile .= " $ch,";
+			}
+			chop $cfile;			
+		}
+		$cfile .= "\n},";
+	}
+	chop $cfile;
+	$cfile .= "};\n";
+	$cfile .= "#define FRAMECNT $fcount\n";
+	print $cfile;
+
 }
 else {
 	my $cfile = "#include <stdint.h>\n\n";
