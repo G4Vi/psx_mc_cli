@@ -39,7 +39,7 @@ With all commands the input filename `-` refers to stdin and only one file will 
 
 If `.mcd` is provided without `savesubstring` the first save is extracted. The `savesubstring` param  is only used for .`mcd`, it can be the string or case insensitive substring of the save's filename i.e `BESLEM-99999TONYHAX` or title i.e. `ＴＯＮＹＨＡＸ　ＳＰＬ` or title in ascii if applicable i.e. `TONYHAX SPL`
 
-`mciconextract` can also dump the Color LookUp Table of the save icon as a `uint16_t[16]` with `--cclut`
+`mciconextract` can also dump the icon as a `.gif` with `--gif [optionalscalevalue]`. To dump the Color LookUp Table and pixels of the save icon as C source code, pass `--csrc`.
 
 ## License
 Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
