@@ -258,4 +258,30 @@ sub SaveNameAndTitleMatch {
 	($save->{'filename'} =~ /\Q$string\E/i) || ($title =~ /\Q$string\E/i) || ($asciititle =~ /\Q$string\E/i));
 }
 
+sub BlankMCD {
+	my $cardbuf = pack('x131072');
+	# header frame
+	substr($cardbuf, 0, 2, 'MC');
+	substr($cardbuf, 0x79, 1, pack('C', 0x0E));
+	# directory frames
+	for(my $i = 1; $i < 16; $i++) {
+		my $frameoffset = $i*0x80;
+		substr($cardbuf, $frameoffset, 1, pack('C', 0xA0));
+		substr($cardbuf, $frameoffset+0x8, 2, pack('v', 0xFFFF));
+	    substr($cardbuf, $frameoffset+0x79, 1, pack('C', 0xA0));
+	}
+	# broken sector list
+	for(my $i = 16; $i < 36; $i++) {
+		my $frameoffset = $i*0x80;
+		substr($cardbuf, $frameoffset, 1, pack('V', 0xFFFFFFFF));
+		substr($cardbuf, $frameoffset+0x8, 2, pack('v', 0xFFFF));
+	}
+	# broken sector replacement data 36-55
+	# unused frames 56-62
+	# write test frame 63
+    # file blocks
+
+	return $cardbuf;
+}
+
 1;
