@@ -2,9 +2,6 @@ use 5.006;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-use File::ShareDir::Install;
-
-install_share 'res';
 
 my %WriteMakefileArgs = (
     NAME             => 'PSX::MC',
@@ -15,10 +12,8 @@ my %WriteMakefileArgs = (
     MIN_PERL_VERSION => '5.006',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
-        "File::ShareDir::Install" => "0.13"
     },
     PREREQ_PM => {
-        "File::ShareDir" => 0,
     },
     EXE_FILES => ['bin/lsmc', 'bin/mciconextract', 'bin/mcs2raw', 'bin/mcsaveextract', 'bin/mkmcd', 'bin/raw2mcs'],
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
@@ -58,8 +53,3 @@ delete $WriteMakefileArgs{LICENSE}
     unless eval { ExtUtils::MakeMaker->VERSION('6.31'); 1 };
 
 WriteMakefile(%WriteMakefileArgs);
-{
-package
-MY;
-use File::ShareDir::Install qw(postamble);
-}

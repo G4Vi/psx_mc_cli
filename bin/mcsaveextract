@@ -4,8 +4,6 @@
 
 use strict; use warnings;
 use Encode qw(decode);
-use FindBin;
-use lib "$FindBin::Bin/../lib";
 use PSX::MC;
 binmode(STDERR, "encoding(UTF-8)");
 (@ARGV >= 1) or die("No mcd provided");

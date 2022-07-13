@@ -6,8 +6,6 @@ use strict; use warnings;
 use feature 'say';
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt); 
-use FindBin;
-use lib "$FindBin::Bin/../lib";
 use PSX::MC;
 
 sub print_directory {

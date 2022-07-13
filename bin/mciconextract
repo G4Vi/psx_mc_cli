@@ -7,8 +7,6 @@ use feature 'say';
 use Encode qw(decode);
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
-use FindBin;
-use lib "$FindBin::Bin/../lib";
 use PSX::MC;
 use GIF::Encoder::PP;
 
