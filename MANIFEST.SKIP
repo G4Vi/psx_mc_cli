@@ -64,13 +64,9 @@
 # Avoid MYMETA files
 ^MYMETA\.
 
-# avoid bat files
-^bin_cmd\/
-
 # build files
 \B\.gitattributes\b
-buildbat\.pl
+build_intree_bin\.pl
 buildpar\.pl
 cpanfile
-
 ^testdata\/

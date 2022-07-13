@@ -8,7 +8,7 @@ use Encode qw(decode);
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
 use PSX::MC;
-use GIF::Encoder::PP;
+use PSX::MC::GIF::Encoder::PP;
 
 sub extract_icon {
 	my($save) = @_;
@@ -73,7 +73,7 @@ sub make_gif {
     $calcscale = 1/(-$calcscale) if($calcscale < 0);    
     my $w = 16 * $calcscale;
     my $h = 16 * $calcscale;    
-    my $gif = GIF::Encoder::PP->new(undef, $w, $h, $palette, 4, 0, $ti);
+    my $gif = PSX::MC::GIF::Encoder::PP->new(undef, $w, $h, $palette, 4, 0, $ti);
     $gif or die("fail to open gif");
 
     # write the frames
@@ -85,9 +85,9 @@ sub make_gif {
 	my $foffset = 0x80;
 	for(my $i = 0; $i < $save->{'header'}{'framecnt'}; $i++) {
 		$framebuf = substr($contents, $foffset, 0x80);		
-		$expanded = GIF::Encoder::PP::expand_frame($framebuf, 4, 8);
+		$expanded = PSX::MC::GIF::Encoder::PP::expand_frame($framebuf, 4, 8);
 		if($scale != 1) {
-            if( ! GIF::Encoder::PP::scale($expanded, 16, 16, $scale, \$gif->{'frame'})) {
+            if( ! PSX::MC::GIF::Encoder::PP::scale($expanded, 16, 16, $scale, \$gif->{'frame'})) {
                 die("failed to scale");
             }
         }

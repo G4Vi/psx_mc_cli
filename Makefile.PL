@@ -17,7 +17,7 @@ my %WriteMakefileArgs = (
     },
     EXE_FILES => ['bin/lsmc', 'bin/mciconextract', 'bin/mcs2raw', 'bin/mcsaveextract', 'bin/mkmcd', 'bin/raw2mcs'],
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES => 'PSX-MC-*' },
+    clean => { FILES => ['PSX-MC-*', 'MANIFEST', 'bin_cmd', 'bin_sh']},
     META_MERGE => {
         'meta-spec' => { version => 2 },
         resources => {
@@ -53,3 +53,7 @@ delete $WriteMakefileArgs{LICENSE}
     unless eval { ExtUtils::MakeMaker->VERSION('6.31'); 1 };
 
 WriteMakefile(%WriteMakefileArgs);
+
+if(-f 'build_intree_bin.pl') {
+    exec('perl', 'build_intree_bin.pl');
+}

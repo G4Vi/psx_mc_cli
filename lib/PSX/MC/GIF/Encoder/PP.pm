@@ -1,4 +1,4 @@
-package GIF::Encoder::PP;
+package PSX::MC::GIF::Encoder::PP;
 
 # Copyright (c) 2021 Gavin Hayes, see LICENSE in the root of the project
 

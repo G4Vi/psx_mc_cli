@@ -1,25 +1,28 @@
 # psx_mc_cli
 Crossplatform cli utilities for working with PSX memory card files
 
-## Install
+## Setup
 
-### *nix
+### Install from CPAN [Recommended]
 
-`git clone`, Just add the `bin` dir to PATH. On debian, add the bottom to `~/.profile`
+`cpanm PSX::MC` will install it including adding the tools to PATH
 
-`export PATH=$PATH:wherever/psx_mc_cli/bin`
+### Or Download and add to PATH
 
-### Windows: run from source
+Download from [releases](https://github.com/G4Vi/psx_mc_cli/releases) and extract.
 
-`git clone`
+#### *nix
+
+Add `bin_sh` to PATH, `export PATH=$PATH:wherever/psx_mc_cli/bin_sh`. In Debian you'd likely put it at the bottom of `~/.profile` .
+
+#### Windows
 
 Git for Windows comes with Perl, but otherwise Strawberry Perl is recommended. For using the utils from Git BASH see the *nix notes to add it to that PATH.
 
 For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `perl` and `bin_cmd` to your `PATH`.
 `Start` -> `View advanced system settings` -> `Advanced` -> `Environment Variables` select `Path` and edit.
 
-### Windows: Binaries
-
+### Or Use Windows Binaries
 If setting up a Perl environment isn't desired, prepackaged binaries are in releases. See above for how to add a dir to `PATH`.
 
 ## Usage
@@ -41,10 +44,14 @@ If `.mcd` is provided without `savesubstring` the first save is extracted. The `
 
 `mciconextract` can also dump the icon as a `.gif` with `--gif [optionalscalevalue]`. To dump the Color LookUp Table and pixels of the save icon as C source code, pass `--csrc`.
 
-## License
-Copyright (c) 2021 Gavin Hayes and others under MIT, see `LICENSE`
+## LICENSE AND COPYRIGHT
 
-## Needed
+This software is copyright (c) 2021-2022 by Gavin Hayes.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself. See LICENSE.
+
+## Wanted
 - automated tests
 - lsmc
     - nonverbose mode
