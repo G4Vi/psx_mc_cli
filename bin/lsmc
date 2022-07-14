@@ -6,7 +6,7 @@ use strict; use warnings;
 use feature 'say';
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt); 
-use PSX::MC;
+use PlayStation::MemoryCard;
 
 sub print_directory {
 	my ($dir) = @_;	 
@@ -84,7 +84,7 @@ else {
 }
 
 foreach my $file (@files) {	
-	my $mcfile = PSX::MC->load($file);
+	my $mcfile = PlayStation::MemoryCard->load($file);
 	say (($file ne '-') ? "$file:" : 'From STDIN:');
 	if(! $mcfile) {
 		warn("unable to load: $file");
@@ -115,7 +115,7 @@ foreach my $file (@files) {
 	# print out the saves
 	say sprintf("%-20s %-40s %12s", 'filename', 'title', 'blockcount');
 	for my $save (@saves) {
-		$save->{'header'} = PSX::MC::parse_file_header($save->{'data'});
+		$save->{'header'} = PlayStation::MemoryCard::parse_file_header($save->{'data'});
 		onSave($save);
 	}
 }

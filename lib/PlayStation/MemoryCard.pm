@@ -1,7 +1,6 @@
-package PSX::MC;
-
+package PlayStation::MemoryCard;
 # Copyright (c) 2021 Gavin Hayes and others, see LICENSE in the root of the project
-
+use version; our $VERSION = version->declare("v0.2.0");
 use strict;
 use warnings;
 use Encode qw(decode encode);
@@ -246,7 +245,7 @@ sub FormatSaveAsMCS {
 
 sub SaveNameAndTitleMatch {
     my ($save, $string) = @_;
-    $save->{'header'} //= PSX::MC::parse_file_header($save->{'data'});
+    $save->{'header'} //= PlayStation::MemoryCard::parse_file_header($save->{'data'});
     my $title = $save->{'header'}{'title'};    
     my $asciititle = $title;
     $asciititle =~ tr/\x{3000}\x{FF01}-\x{FF5E}/ -~/; # fullwidth to half-width if possible
@@ -286,3 +285,46 @@ sub BlankMCD {
 }
 
 1;
+
+__END__
+
+=pod
+
+=encoding utf-8
+
+=head1 NAME
+
+PlayStation::MemoryCard - Utilities for working with PlayStation memory
+card and save files
+
+=head1 SYNOPSIS
+
+    mkmcd BESLEM-99999TONYHAX tonyhax.mcs card1.mcd > out.mcd # Make a new memory card file from a raw save, mcs save, and memory card file
+    lsmc card.mcd thps2-us.mcs BESLEM-99999TONYHAX            # Print info of saves and card file
+    raw2mcs RAWSAVE > out.mcs                                 # Convert a raw save into a mcs save
+    mcs2raw in.mcs                                            # Convert a mcs save into a raw save
+    mcsaveextract card.mcd [savesubstring] > thps2-us.mcs     # Extract a save file from a card file
+    mciconextract thps2-us.mcs > thps2-us.tim                 # Extract a save icon as TIM
+    mciconextract thps2-us.mcs --gif > thps2-us.tim           # Extract a save icon as GIF
+
+=head1 AUTHOR
+
+Gavin Hayes, C<< <gahayes at cpan.org> >>
+
+=head1 SUPPORT AND DOCUMENTATION
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc PlayStation::MemoryCard
+
+Additional documentation, support, and bug reports can be found at the
+repository L<https://github.com/G4Vi/psx_mc_cli>
+
+=head1 LICENSE AND COPYRIGHT
+
+This software is copyright (c) 2022 by Gavin Hayes.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

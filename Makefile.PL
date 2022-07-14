@@ -4,10 +4,10 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 my %WriteMakefileArgs = (
-    NAME             => 'PSX::MC',
+    NAME             => 'PlayStation::MemoryCard',
     AUTHOR           => "Gavin Hayes <gahayes\@cpan.org>",
-    VERSION_FROM     => 'lib/PSX/MC.pm',
-    ABSTRACT_FROM    => 'lib/PSX/MC.pm',
+    VERSION_FROM     => 'lib/PlayStation/MemoryCard.pm',
+    ABSTRACT_FROM    => 'lib/PlayStation/MemoryCard.pm',
     LICENSE          => 'perl_5',
     MIN_PERL_VERSION => '5.006',
     CONFIGURE_REQUIRES => {
@@ -17,7 +17,7 @@ my %WriteMakefileArgs = (
     },
     EXE_FILES => ['bin/lsmc', 'bin/mciconextract', 'bin/mcs2raw', 'bin/mcsaveextract', 'bin/mkmcd', 'bin/raw2mcs'],
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES => ['PSX-MC-*', 'MANIFEST', 'bin_cmd', 'bin_sh']},
+    clean => { FILES => ['PlayStation-MemoryCard-*', 'bin_cmd', 'bin_sh']},
     META_MERGE => {
         'meta-spec' => { version => 2 },
         resources => {

@@ -7,7 +7,7 @@ use feature 'say';
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt); 
 use File::Basename;
-use PSX::MC;
+use PlayStation::MemoryCard;
 
 my $outpath;
 my $outdir = '.';
@@ -24,7 +24,7 @@ else {
 	$infile = '-'; 
 }
 
-my $mcfile = PSX::MC->load($infile);
+my $mcfile = PlayStation::MemoryCard->load($infile);
 $mcfile or die("unable to load: $infile");
 if($mcfile->{'type'} ne 'mcs') {
     die("Unsupported input file type");

@@ -1,7 +1,6 @@
-package PSX::MC::GIF::Encoder::PP;
-
+package PlayStation::MemoryCard::GIF::Encoder::PP;
 # Copyright (c) 2021 Gavin Hayes, see LICENSE in the root of the project
-
+use version; our $VERSION = version->declare("v0.2.0");
 use strict;
 use warnings;
 

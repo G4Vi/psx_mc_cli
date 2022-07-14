@@ -7,7 +7,7 @@ use feature 'say';
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt); 
 use File::Basename;
-use PSX::MC;
+use PlayStation::MemoryCard;
 
 my $codename;
 
@@ -25,10 +25,10 @@ else {
     $codename or die("filename must be provided for raw save");    
 }
 
-my $mcfile = PSX::MC->load($infile, $codename);
+my $mcfile = PlayStation::MemoryCard->load($infile, $codename);
 $mcfile or die("unable to load: $infile");
 if($mcfile->{'type'} ne 'rawsave') {
     die("Unsupported input file type");
 }
 my $save = $mcfile->readSave();
-print PSX::MC::FormatSaveAsMCS($save);
+print PlayStation::MemoryCard::FormatSaveAsMCS($save);

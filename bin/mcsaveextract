@@ -4,13 +4,13 @@
 
 use strict; use warnings;
 use Encode qw(decode);
-use PSX::MC;
+use PlayStation::MemoryCard;
 binmode(STDERR, "encoding(UTF-8)");
 (@ARGV >= 1) or die("No mcd provided");
 
 # load the memory card
 my $file = $ARGV[0];
-my $mcfile = PSX::MC->load($file);
+my $mcfile = PlayStation::MemoryCard->load($file);
 if(!$mcfile) {
 	die("Failed to open $file");
 }
@@ -25,8 +25,8 @@ $mcfile->foreachDirEntry(sub {
 	return if(! $newsave);	
 
     # find the save
-	if(PSX::MC::SaveNameAndTitleMatch($newsave, $searchfname)) {
-		my $mcs = PSX::MC::FormatSaveAsMCS($newsave);
+	if(PlayStation::MemoryCard::SaveNameAndTitleMatch($newsave, $searchfname)) {
+		my $mcs = PlayStation::MemoryCard::FormatSaveAsMCS($newsave);
 		print $mcs;
 		exit 0;	
 	}

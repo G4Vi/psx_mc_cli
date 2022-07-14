@@ -3,17 +3,17 @@
 # Copyright (c) 2021 Gavin Hayes and others, see LICENSE in the root of the project
 
 use strict; use warnings;
-use PSX::MC;
+use PlayStation::MemoryCard;
 
 # create empty memory card
-my $memcard = PSX::MC::BlankMCD();
+my $memcard = PlayStation::MemoryCard::BlankMCD();
 
 # Add each save to the memcard
 my $directoryoffset = 0x80;
 my $savedataoffset = 0x2000;
 foreach my $file (@ARGV) {
     # load input file
-    my $mcfile = PSX::MC->load($file);
+    my $mcfile = PlayStation::MemoryCard->load($file);
 	if(! $mcfile) {
 		die("unable to load: $file");
 	}
@@ -35,7 +35,7 @@ foreach my $file (@ARGV) {
 
 	foreach my $save (@saves) {
 		# create the mcd data from the save
-	    my $mcdsave = PSX::MC::FormatSaveAsMCD($directoryoffset, $save);
+	    my $mcdsave = PlayStation::MemoryCard::FormatSaveAsMCD($directoryoffset, $save);
     
 	    # verify there is enough space for the save
         my $newdirspaceneeded = length($mcdsave->{'dirdata'});

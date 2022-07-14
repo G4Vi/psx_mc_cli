@@ -5,7 +5,7 @@ Crossplatform cli utilities for working with PSX memory card files
 
 ### Install from CPAN [Recommended]
 
-`cpanm PSX::MC` will install it including adding the tools to PATH
+`cpanm PlayStation::MemoryCard` will install it including adding the tools to PATH
 
 ### Or Download and add to PATH
 
