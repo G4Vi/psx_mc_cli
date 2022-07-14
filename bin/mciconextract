@@ -8,7 +8,7 @@ use Encode qw(decode);
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
 use PlayStation::MemoryCard;
-use PlayStation::MemoryCard::GIF::Encoder::PP;
+use Image::GIF::Encoder::PP;
 
 sub extract_icon {
 	my($save) = @_;
@@ -73,7 +73,7 @@ sub make_gif {
     $calcscale = 1/(-$calcscale) if($calcscale < 0);    
     my $w = 16 * $calcscale;
     my $h = 16 * $calcscale;    
-    my $gif = PlayStation::MemoryCard::GIF::Encoder::PP->new(undef, $w, $h, $palette, 4, 0, $ti);
+    my $gif = Image::GIF::Encoder::PP->new(undef, $w, $h, $palette, 4, 0, $ti);
     $gif or die("fail to open gif");
 
     # write the frames
@@ -85,9 +85,9 @@ sub make_gif {
 	my $foffset = 0x80;
 	for(my $i = 0; $i < $save->{'header'}{'framecnt'}; $i++) {
 		$framebuf = substr($contents, $foffset, 0x80);		
-		$expanded = PlayStation::MemoryCard::GIF::Encoder::PP::expand_frame($framebuf, 4, 8);
+		$expanded = Image::GIF::Encoder::PP::expand_frame($framebuf, 4, 8);
 		if($scale != 1) {
-            if( ! PlayStation::MemoryCard::GIF::Encoder::PP::scale($expanded, 16, 16, $scale, \$gif->{'frame'})) {
+            if( ! Image::GIF::Encoder::PP::scale($expanded, 16, 16, $scale, \$gif->{'frame'})) {
                 die("failed to scale");
             }
         }
@@ -99,7 +99,7 @@ sub make_gif {
 	}
 
 	# write trailer
-    $gif->finish();
+	undef $gif;
 }
 
 my $csrc;

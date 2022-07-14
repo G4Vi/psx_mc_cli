@@ -14,6 +14,7 @@ my %WriteMakefileArgs = (
         'ExtUtils::MakeMaker' => '0',
     },
     PREREQ_PM => {
+        'Image::GIF::Encoder::PP' => '0'
     },
     EXE_FILES => ['bin/lsmc', 'bin/mciconextract', 'bin/mcs2raw', 'bin/mcsaveextract', 'bin/mkmcd', 'bin/raw2mcs'],
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
