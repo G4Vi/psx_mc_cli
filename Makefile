@@ -36,5 +36,11 @@ psx-mc-cli-v$(PSXMCVERSION)-standalone.tar.gz: psx-mc-cli-v$(PSXMCVERSION)-stand
 psx-mc-cli-v$(PSXMCVERSION)-standalone.zip: psx-mc-cli-v$(PSXMCVERSION)-standalone
 	zip -r $@ psx-mc-cli-v$(PSXMCVERSION)-standalone
 
-.PHONY: standalone
-standalone: psx-mc-cli-v$(PSXMCVERSION)-standalone.tar.gz psx-mc-cli-v$(PSXMCVERSION)-standalone.zip
+.PHONY: standalone-tarball
+standalone-tarball: psx-mc-cli-v$(PSXMCVERSION)-standalone.tar.gz
+
+.PHONY: standalone-zip
+standalone-zip: psx-mc-cli-v$(PSXMCVERSION)-standalone.zip
+
+.PHONY: standalone-all
+standalone: standalone-tarball standalone-zip
