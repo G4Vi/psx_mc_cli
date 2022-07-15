@@ -1,0 +1,3 @@
+[submodule "gifenc-pl"]
+	path = gifenc-pl
+	url = https://github.com/G4Vi/gifenc-pl

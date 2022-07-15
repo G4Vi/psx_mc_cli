@@ -54,7 +54,3 @@ delete $WriteMakefileArgs{LICENSE}
     unless eval { ExtUtils::MakeMaker->VERSION('6.31'); 1 };
 
 WriteMakefile(%WriteMakefileArgs);
-
-if(-f 'build_intree_bin.pl') {
-    exec('perl', 'build_intree_bin.pl');
-}

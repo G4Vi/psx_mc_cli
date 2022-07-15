@@ -2,14 +2,15 @@
 
 use strict; use warnings;
 use feature 'say';
-use FindBin;
 use File::Path qw(make_path);
 
-my $bindir = "$FindBin::Bin/bin";
+my $destdir = $ARGV[0];
+
+my $bindir = "$destdir/bin";
 my @formats = (
     # bat
     {
-        'out' => "$FindBin::Bin/bin_cmd",
+        'out' => "$destdir/bin_cmd",
         'name' => sub { return $_[0].'.bat';},
         'writefilecontents' => sub {
             my ($fh, $scriptname) = @_;
@@ -25,7 +26,7 @@ my @formats = (
     },
     # sh
     {
-        'out' => "$FindBin::Bin/bin_sh",
+        'out' => "$destdir/bin_sh",
         'name' => sub { return $_[0];},
         'writefilecontents' => sub {
             my ($fh, $scriptname) = @_;
