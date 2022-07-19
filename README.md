@@ -9,7 +9,7 @@ Crossplatform cli utilities for working with PSX memory card files
 
 ### Or Download standlone release and add to PATH
 
-Download from [releases](https://github.com/G4Vi/psx_mc_cli/releases) and extract.
+Download `psx-mc-cli-v*.*.*-standalone` from [releases](https://github.com/G4Vi/psx_mc_cli/releases) and extract.
 
 #### *nix
 

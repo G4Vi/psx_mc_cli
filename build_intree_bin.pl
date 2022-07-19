@@ -6,7 +6,7 @@ use File::Path qw(make_path);
 
 my $destdir = $ARGV[0];
 
-my $bindir = "$destdir/bin";
+my $bindir = "$destdir/script";
 my @formats = (
     # bat
     {
@@ -21,7 +21,7 @@ my @formats = (
             print $fh ") ELSE (\r\n";
             print $fh 'SET "PERLEXE=perl"' . "\r\n";
             print $fh ")\r\n";
-            print $fh '"%PERLEXE%" "-I" "%~dp0..\lib" "%~dp0..\bin'."\\" . $scriptname . '" %*'."\r\n";
+            print $fh '"%PERLEXE%" "-I" "%~dp0..\lib" "%~dp0..\script'."\\" . $scriptname . '" %*'."\r\n";
         }
     },
     # sh
@@ -32,7 +32,7 @@ my @formats = (
             my ($fh, $scriptname) = @_;
             print $fh '#!/bin/sh'."\n";
             print $fh 'SCRIPTLOC=$(dirname $0)'."\n";
-            print $fh 'exec perl -I "$SCRIPTLOC/../lib" "$SCRIPTLOC/../bin/'. $scriptname.'" "$@"'."\n";
+            print $fh 'exec perl -I "$SCRIPTLOC/../lib" "$SCRIPTLOC/../script/'. $scriptname.'" "$@"'."\n";
             my $perm = (stat $fh)[2] & 07777;
             chmod($perm | 0111, $fh);
         }

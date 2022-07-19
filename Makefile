@@ -7,7 +7,7 @@ all: PlayStation-MemoryCard standalone
 .PHONY: clean
 clean: PlayStation-MemoryCard/Makefile
 	$(MAKE) -C PlayStation-MemoryCard veryclean
-	rm -rf psx-mc-cli*standalone
+	rm -rf psx-mc-cli*standalone*
 
 PlayStation-MemoryCard/Makefile: PlayStation-MemoryCard/Makefile.PL
 	cd PlayStation-MemoryCard && perl Makefile.PL
@@ -23,7 +23,7 @@ psx-mc-cli-v$(PSXMCVERSION)-standalone:
 	[ ! -d $@ ]
 	mkdir -p $@
 	cp -r PlayStation-MemoryCard/lib $@/
-	cp -r PlayStation-MemoryCard/bin $@/
+	cp -r PlayStation-MemoryCard/script $@/
 	cp PlayStation-MemoryCard/Changes $@/
 	cp LICENSE $@/
 	cp README.md $@/

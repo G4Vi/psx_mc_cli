@@ -1,4 +1,4 @@
-use 5.006;
+use 5.010;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -9,16 +9,16 @@ my %WriteMakefileArgs = (
     VERSION_FROM     => 'lib/PlayStation/MemoryCard.pm',
     ABSTRACT_FROM    => 'lib/PlayStation/MemoryCard.pm',
     LICENSE          => 'perl_5',
-    MIN_PERL_VERSION => '5.006',
+    MIN_PERL_VERSION => '5.010',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
     },
     PREREQ_PM => {
         'Image::GIF::Encoder::PP' => '0'
     },
-    EXE_FILES => ['bin/lsmc', 'bin/mciconextract', 'bin/mcs2raw', 'bin/mcsaveextract', 'bin/mkmcd', 'bin/raw2mcs'],
+    EXE_FILES => ['script/lsmc', 'script/mciconextract', 'script/mcs2raw', 'script/mcsaveextract', 'script/mkmcd', 'script/raw2mcs'],
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES => ['PlayStation-MemoryCard-*', 'bin_cmd', 'bin_sh']},
+    clean => { FILES => ['PlayStation-MemoryCard-*']},
     META_MERGE => {
         'meta-spec' => { version => 2 },
         resources => {
@@ -32,6 +32,8 @@ my %WriteMakefileArgs = (
             },
             homepage   => 'https://github.com/G4Vi/psx_mc_cli',
         },
+        'dynamic_config' => 0,
+        'x_static_install' => 1
     },
 );
 
