@@ -23,7 +23,7 @@ For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `per
 `Start` -> `View advanced system settings` -> `Advanced` -> `Environment Variables` select `Path` and edit.
 
 ### Or Use Windows Binaries
-If setting up a Perl environment isn't desired, prepackaged binaries are in releases. See above for how to add a dir to `PATH`.
+If setting up a Perl environment isn't desired, packaged binaries can be found in `psx-mc-cli-v*.*.*-windows-exe.zip` in releases. However, this is the most slow and bloated way to use psx_mc_cli as each binary contains perl. See above for how to add a dir to `PATH`.
 
 ## Usage
 
