@@ -43,4 +43,4 @@ standalone-tarball: psx-mc-cli-v$(PSXMCVERSION)-standalone.tar.gz
 standalone-zip: psx-mc-cli-v$(PSXMCVERSION)-standalone.zip
 
 .PHONY: standalone-all
-standalone: standalone-tarball standalone-zip
+standalone-all: standalone-tarball standalone-zip

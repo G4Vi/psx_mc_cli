@@ -16,12 +16,15 @@ foreach my $file (@tocopy) {
 	copy("$FindBin::Bin/$file", $reldir);
 }
 my $psxmcdir = "$FindBin::Bin/PlayStation-MemoryCard";
-my $inbindir = "$psxmcdir/bin";
+my $inbindir = "$psxmcdir/script";
 opendir(my $dh, $inbindir) || die "Can't open $inbindir: $!";
 while (readdir $dh) {
     next if($_ =~ /^\.{1,2}$/);
-    system('pp', "--lib=$psxmcdir/lib", '-M', 'PlayStation::MemoryCard',
-	"--lib=$FindBin::Bin/gifenc-pl/lib", '-M', 'Image::GIF::Encoder::PP',
-	'-u', '-B', '-o', "$relbindir/$_.exe", "$inbindir/$_") == 0 or die("Failed to package");
+
+	my @cmd = ('pp', "--lib=$psxmcdir/lib", '-M', 'PlayStation::MemoryCard',
+	"--lib=$FindBin::Bin/gifenc-pl/lib", '-M', 'Image::GIF::Encoder::PP');
+	push(@cmd, '-u') if ("$]" < 5.031006);
+    push @cmd, ('-B', '-o', "$relbindir/$_.exe", "$inbindir/$_");
+	system(@cmd) == 0 or die("Failed to package");
 }
 closedir $dh;
