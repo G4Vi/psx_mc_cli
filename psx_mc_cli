@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+use strict; use warnings;
+
+my $usage = <<'END_USAGE';
+psx_mc_cli <command> [...]
+List of commands
+  install          | Create symlinks or copies of the psx_mc_cli utilities
+  perldoc          | Open the PlayStation::MemoryCard perldoc
+  help             | Display this message
+  lsmc             | Run the lsmc script
+  mciconextract    | Run the mciconextract script
+  mc2raw           | Run the mcs2raw script
+  mcsaveextract    | Run the mcsaveextract script
+  mkmcd            | Run the mkmcd script
+  raw2mcs          | Run the raw2mcs script
+
+This is psx_mc_cli packaged into APPerl. Rename this executable to perl.com
+to use perl.
+END_USAGE
+
+my $command = shift @ARGV or die($usage);
+if($command =~ /^(lsmc|mciconextract|mc2raw|mcsaveextract|mkmcd|raw2mc)$/) {
+    do "/zip/bin/$command" or die;
+}
+elsif($command =~ /^(\-)*(halp|help|h)$/i) {
+    print $usage;   
+}
+elsif($command eq 'perldoc') {
+    @ARGV = ('PlayStation::MemoryCard');
+    do "/zip/bin/$command" or die;
+}
+elsif($command eq 'install') {
+    die("enotimplemented");
+}
+else {
+    die($usage);
+}
