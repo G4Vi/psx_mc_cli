@@ -1,0 +1,21 @@
+{
+   "apperl_configs" : {
+      "psx_mc_cli" : {
+         "dest" : "perl.com",
+         "base" : "v5.36.0-small-v0.1.0-vista",
+         "desc" : "description of this config",
+         "+MANIFEST" : ["__perllib__/version.pm", "__perllib__/version/regex.pm",
+         "__perlarchlib__/Encode.pm", "__perlarchlib__/Encode", "__perlarchlib__/Storable.pm",
+         "__perllib__/PerlIO.pm", "__perllib__/PerlIO", "__perlarchlib__/PerlIO",
+         "__perllib__/PlayStation", "bin/lsmc", "bin/mciconextract", "bin/mcs2raw",
+         "bin/mcsaveextract", "bin/mkmcd", "bin/raw2mcs"],
+         "zip_extra_files" : { "__perllib__" : ["PlayStation-MemoryCard/lib/PlayStation"],
+         "bin" : ["PlayStation-MemoryCard/script/lsmc", "PlayStation-MemoryCard/script/mciconextract",
+         "PlayStation-MemoryCard/script/mcs2raw", "PlayStation-MemoryCard/script/mcsaveextract",
+         "PlayStation-MemoryCard/script/mkmcd", "PlayStation-MemoryCard/script/raw2mcs"]
+         },
+         "+perl_onlyextensions" : ["Encode", "Storable", "PerlIO/encoding"]
+      }
+   },
+   "defaultconfig" : "psx_mc_cli"
+}
