@@ -8,7 +8,7 @@
          "__perlarchlib__/Encode.pm", "__perlarchlib__/Encode", "__perlarchlib__/Storable.pm",
          "__perllib__/PerlIO.pm", "__perllib__/PerlIO", "__perlarchlib__/PerlIO",
          "__perllib__/PlayStation", "bin/lsmc", "bin/mciconextract", "bin/mcs2raw",
-         "bin/mcsaveextract", "bin/mkmcd", "bin/raw2mcs", "bin/psx_mc_cli"],
+         "bin/mcsaveextract", "bin/mkmcd", "bin/raw2mcs", "bin/psx_mc_cli", "__perllib__/File/Copy.pm"],
          "zip_extra_files" : { "__perllib__" : ["PlayStation-MemoryCard/lib/PlayStation"],
          "bin" : ["PlayStation-MemoryCard/script/lsmc", "PlayStation-MemoryCard/script/mciconextract",
          "PlayStation-MemoryCard/script/mcs2raw", "PlayStation-MemoryCard/script/mcsaveextract",

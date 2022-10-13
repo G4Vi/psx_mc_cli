@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 use strict; use warnings;
+use File::Copy "copy";
+use PlayStation::MemoryCard;
 
 my $usage = <<'END_USAGE';
 psx_mc_cli <command> [...]
@@ -7,9 +9,10 @@ List of commands
   install          | Create symlinks or copies of the psx_mc_cli utilities
   perldoc          | Open the PlayStation::MemoryCard perldoc
   help             | Display this message
+  version          | Display version
   lsmc             | Run the lsmc script
   mciconextract    | Run the mciconextract script
-  mc2raw           | Run the mcs2raw script
+  mcs2raw          | Run the mcs2raw script
   mcsaveextract    | Run the mcsaveextract script
   mkmcd            | Run the mkmcd script
   raw2mcs          | Run the raw2mcs script
@@ -19,18 +22,52 @@ to use perl.
 END_USAGE
 
 my $command = shift @ARGV or die($usage);
-if($command =~ /^(lsmc|mciconextract|mc2raw|mcsaveextract|mkmcd|raw2mc)$/) {
+my @scripts = qw(lsmc mciconextract mcs2raw mcsaveextract mkmcd raw2mcs);
+if(grep(/^$command$/, @scripts)) {
     do "/zip/bin/$command" or die;
 }
 elsif($command =~ /^(\-)*(halp|help|h)$/i) {
     print $usage;   
+}
+elsif($command =~ /^(\-)*(version|v)$/i) {
+    my $message = <<"END_USAGE";
+psx_mc_cli $PlayStation::MemoryCard::VERSION
+Copyright (C) 2022 Gavin Arthur Hayes
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+END_USAGE
+    print $message;
 }
 elsif($command eq 'perldoc') {
     @ARGV = ('PlayStation::MemoryCard');
     do "/zip/bin/$command" or die;
 }
 elsif($command eq 'install') {
-    die("enotimplemented");
+    my $IsWindows = -f '/C/Windows/System32/cmd.exe';
+    my $ext = $IsWindows ? '.exe' : '';
+    my $srcbin = "./psx_mc_cli$ext";
+    copy($^X, $srcbin) or die "Failed to make copy";
+    chmod((stat $^X)[2], $srcbin) or die("Failed to set file permissions");
+    if(!$IsWindows) {
+        # for now we need to force this through a shell to run an APE binary
+        # and prevent the cosmopolitan runtime from handling it seperately
+        my $escapedcmd = join(' ', ('"'.$srcbin.'"', '--assimilate'));
+        system($escapedcmd) == 0 or die 'Failed to assimilate';
+    }
+    my @commands = (
+        sub { return eval { symlink($srcbin, $_[0]); }; },
+        sub { return copy($srcbin, $_[0])},
+    );
+    my $success;
+    OUTER:
+    foreach my $command (@commands) {
+        foreach my $tocreate (@scripts) {
+            $command->($tocreate.$ext) or next OUTER;
+        }
+        $success = 1;
+        last;
+    }
+    $success or die 'Error installing';
 }
 else {
     die($usage);
