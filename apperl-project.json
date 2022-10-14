@@ -7,24 +7,27 @@
          "+MANIFEST" : ["__perllib__/version.pm", "__perllib__/version/regex.pm",
          "__perlarchlib__/Encode.pm", "__perlarchlib__/Encode", "__perlarchlib__/Storable.pm",
          "__perllib__/PerlIO.pm", "__perllib__/PerlIO", "__perlarchlib__/PerlIO",
-         "__perllib__/PlayStation", "bin/lsmc", "bin/mciconextract", "bin/mcs2raw",
-         "bin/mcsaveextract", "bin/mkmcd", "bin/raw2mcs", "bin/psx_mc_cli", "__perllib__/File/Copy.pm"],
-         "zip_extra_files" : { "__perllib__" : ["PlayStation-MemoryCard/lib/PlayStation"],
+         "__perllib__/PlayStation", "__perllib__/Image", "bin/lsmc", "bin/mciconextract", "bin/mcs2raw",
+         "bin/mcsaveextract", "bin/mkmcd", "bin/raw2mcs", "bin/psx_mc_cli", "__perllib__/File/Copy.pm",
+         "Changes", "README.md", "LICENSE"],
+         "zip_extra_files" : { "__perllib__" : ["PlayStation-MemoryCard/lib/PlayStation", "gifenc-pl/lib/Image"],
          "bin" : ["PlayStation-MemoryCard/script/lsmc", "PlayStation-MemoryCard/script/mciconextract",
          "PlayStation-MemoryCard/script/mcs2raw", "PlayStation-MemoryCard/script/mcsaveextract",
-         "PlayStation-MemoryCard/script/mkmcd", "PlayStation-MemoryCard/script/raw2mcs", "psx_mc_cli"]
+         "PlayStation-MemoryCard/script/mkmcd", "PlayStation-MemoryCard/script/raw2mcs", "psx_mc_cli"],
+         "." : ["PlayStation-MemoryCard/Changes", "README.md", "LICENSE"]
          },
-         "+perl_onlyextensions" : ["Encode", "Storable", "PerlIO/encoding"]
+         "+perl_onlyextensions" : ["Encode", "Storable", "PerlIO/encoding"],
+         "-perl_onlyextensions" : ["Hash/Util", "List/Util", "POSIX", "Socket", "Fcntl", "IO", "attributes"]
       },
       "psx_mc_cli_with_perldoc" : {
          "base" : "psx_mc_cli",
          "desc" : "psx_mc_cli with perldoc",
-         "+perl_onlyextensions" : ["ErrnoRuntime"],
+         "+perl_onlyextensions" : ["ErrnoRuntime", "Fcntl", "IO", "List/Util"],
          "+MANIFEST" : ["bin/perldoc",
          "__perlarchlib__/File/Spec/Functions.pm", "__perllib__/Config/Perl/V.pm",
          "__perlarchlib__/ErrnoRuntime.pm",
          "__perllib__/Pod", "__perllib__/if.pm"]
       }
    },
-   "defaultconfig" : "psx_mc_cli"
+   "defaultconfig" : "psx_mc_cli_with_perldoc"
 }

@@ -6,7 +6,11 @@ use PlayStation::MemoryCard;
 my $usage = <<'END_USAGE';
 psx_mc_cli <command> [...]
 List of commands
-  install          | Create symlinks or copies of the psx_mc_cli utilities
+  install          | Extract the psx_mc_cli utilities. psx_mc_cli.com is copied
+                   | and turned into a native executable. Symlinks to the
+                   | utilities are created, or binaries are created as a
+                   | fallback. On Windows < 11, Admin privileges are needed to
+                   | create symlinks.
   perldoc          | Open the PlayStation::MemoryCard perldoc
   help             | Display this message
   version          | Display version

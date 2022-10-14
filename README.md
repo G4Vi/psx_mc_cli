@@ -22,8 +22,8 @@ Git for Windows comes with Perl, but otherwise Strawberry Perl is recommended. F
 For using the utils from outside of a *nix environment (`cmd.exe`, etc) add `perl` and `bin_cmd` to your `PATH`.
 `Start` -> `View advanced system settings` -> `Advanced` -> `Environment Variables` select `Path` and edit.
 
-### Or Use Windows Binaries
-If setting up a Perl environment isn't desired, packaged binaries can be found in `psx-mc-cli-v*.*.*-windows-exe.zip` in releases. However, this is the most slow and bloated way to use psx_mc_cli as each binary contains perl. See above for how to add a dir to `PATH`.
+### Or Download APPerl binary
+psx_mc_cli is available as an [APPerl](https://metacpan.org/pod/Perl::Dist::APPerl) application! A self-contained binary with Perl and psx_mc_cli that runs on Windows, Linux, Mac OS X, FreeBSD, OpenBSD, and NetBSD. See `psx_mc_cli.com` in releases. Run with `--help` for usage info, it can be used with the same convenience as the other setup methods after `install`. See above for how to add a dir to `PATH`.
 
 ## Usage
 
