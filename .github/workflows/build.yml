@@ -19,7 +19,7 @@ jobs:
   #        print "windows version: $_\n" foreach(perl_versions(platform => 'win32'));
   #        print "strawberry windows version: $_\n" foreach(perl_versions(platform => 'win32', distribution => 'strawberry'));
   build-linux:
-    name:    Build PlayStation-MemoryCard and standalones
+    name:    Build PlayStation-MemoryCard, standalones, and ape release
     runs-on: ubuntu-latest
     steps:
     - name: Fetch repo and submodules
@@ -31,6 +31,8 @@ jobs:
       uses: shogo82148/actions-setup-perl@v1
       with:
         perl-version: '5.36'
+        install-modules-with: cpanm
+        install-modules: Perl::Dist::APPerl
     - name: Test in-tree
       run: |
         cd psx_mc_cli/PlayStation-MemoryCard
@@ -46,6 +48,36 @@ jobs:
       run: |
         cd psx_mc_cli
         make standalone-all
+    - name: Load APE config
+      run: |
+          echo "PERL_ID=$(apperlm get-config-key psx_mc_cli_with_perldoc perl_id)" >> $GITHUB_ENV
+          echo "COSMO_ID=$(apperlm get-config-key psx_mc_cli_with_perldoc cosmo_id)" >> $GITHUB_ENV
+    - name: Fetch Perl
+      uses: actions/checkout@v3
+      with:
+        repository: 'G4Vi/perl5'
+        ref: ${{ env.PERL_ID }}
+        path: 'perl5'
+    - name: Fetch cosmopolitan
+      uses: actions/checkout@v3
+      with:
+        repository: 'jart/cosmopolitan'
+        ref: ${{ env.COSMO_ID }}
+        path: 'cosmopolitan'
+    - name: support ape bins
+      run: sudo sh -c "echo ':APE:M::MZqFpD::/bin/sh:' >/proc/sys/fs/binfmt_misc/register"
+    - name: Configure and Build psx_mc_cli.com
+      env:
+        CF_BY: ${{ secrets.CF_BY }}
+        CF_EMAIL: ${{ secrets.CF_EMAIL }}
+      run: |
+        cd psx_mc_cli
+        ls -la
+        apperlm install-build-deps -p ../perl5 -c ../cosmopolitan
+        apperlm checkout psx_mc_cli_with_perldoc
+        apperlm list
+        apperlm configure -Dcf_by="$CF_BY" -Dcf_email="$CF_EMAIL"
+        apperlm build
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -55,45 +87,46 @@ jobs:
           psx_mc_cli/PlayStation-MemoryCard-v*.tar.gz
           psx_mc_cli/psx-mc-cli-v*-standalone.tar.gz
           psx_mc_cli/psx-mc-cli-v*-standalone.zip
+          psx_mc_cli/psx-mc-cli.com
 
-  build-windows:
-    name:    Build psx-mc-cli-windows-exe
-    runs-on: windows-latest
-    steps:
-    - name: Fetch repo and submodules
-      uses: actions/checkout@v3
-      with:
-        path: 'psx_mc_cli'
-        submodules: true
-    - name: Install Perl
-      uses: shogo82148/actions-setup-perl@v1
-      with:
-        perl-version: '5.32'
-        distribution: strawberry
-        working-directory: psx_mc_cli
-        install-modules-with: cpanm
-    - name: Test in-tree
-      run: |
-        cd psx_mc_cli/PlayStation-MemoryCard
-        prove -I../gifenc-pl/lib -lv t
-    - name: Build windows exe release
-      run: |
-        cd psx_mc_cli
-        perl buildpar.pl
-        $version = perl -IPlayStation-MemoryCard/lib -MPlayStation::MemoryCard -e 'print $PlayStation::MemoryCard::VERSION'
-        7z a -tzip psx-mc-cli-$version-windows-exe.zip psx-mc-cli-$version-windows-exe
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: psx_mc_cli-windows-exe
-        if-no-files-found: error
-        path: psx_mc_cli/psx-mc-cli-v*-windows-exe.zip
-    - name: Archive CPAN logs
-      if: ${{ failure() }}
-      uses: actions/upload-artifact@v3
-      with:
-        name: cpan_log
-        path: C:\Users\RUNNER*\.cpanm\work\*\build.log
+#  build-windows:
+#    name:    Build psx-mc-cli-windows-exe
+#    runs-on: windows-latest
+#    steps:
+#    - name: Fetch repo and submodules
+#      uses: actions/checkout@v3
+#      with:
+#        path: 'psx_mc_cli'
+#        submodules: true
+#    - name: Install Perl
+#      uses: shogo82148/actions-setup-perl@v1
+#      with:
+#        perl-version: '5.32'
+#        distribution: strawberry
+#        working-directory: psx_mc_cli
+#        install-modules-with: cpanm
+#    - name: Test in-tree
+#      run: |
+#        cd psx_mc_cli/PlayStation-MemoryCard
+#        prove -I../gifenc-pl/lib -lv t
+#    - name: Build windows exe release
+#      run: |
+#        cd psx_mc_cli
+#        perl buildpar.pl
+#        $version = perl -IPlayStation-MemoryCard/lib -MPlayStation::MemoryCard -e 'print $PlayStation::MemoryCard::VERSION'
+#        7z a -tzip psx-mc-cli-$version-windows-exe.zip psx-mc-cli-$version-windows-exe
+#    - name: Upload build artifacts
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: psx_mc_cli-windows-exe
+#        if-no-files-found: error
+#        path: psx_mc_cli/psx-mc-cli-v*-windows-exe.zip
+#    - name: Archive CPAN logs
+#      if: ${{ failure() }}
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: cpan_log
+#        path: C:\Users\RUNNER*\.cpanm\work\*\build.log
 
   test-perl-release:
     needs:   [ build-linux ]
@@ -127,7 +160,7 @@ jobs:
   create-release:
     name:    Create release
     runs-on: ubuntu-latest
-    needs:   [ build-linux, build-windows, test-perl-release ]
+    needs:   [ build-linux, test-perl-release ]
     steps:
     - name: Fetch build artifacts
       if:   ${{ github.ref_type == 'tag' }}
@@ -141,4 +174,4 @@ jobs:
         files: |
           psx_mc_cli-Perl/PlayStation-MemoryCard-v*.tar.gz
           psx_mc_cli-Perl/psx-mc-cli-v*-standalone.*
-          psx_mc_cli-windows-exe/psx-mc-cli-v*-windows-exe.zip
+          psx_mc_cli-Perl/psx-mc-cli.com
