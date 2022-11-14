@@ -88,7 +88,7 @@ jobs:
           psx_mc_cli/PlayStation-MemoryCard-v*.tar.gz
           psx_mc_cli/psx-mc-cli-v*-standalone.tar.gz
           psx_mc_cli/psx-mc-cli-v*-standalone.zip
-          psx_mc_cli/psx-mc-cli.com
+          psx_mc_cli/psx_mc_cli.com
 
 #  build-windows:
 #    name:    Build psx-mc-cli-windows-exe
@@ -175,4 +175,4 @@ jobs:
         files: |
           psx_mc_cli-Perl/PlayStation-MemoryCard-v*.tar.gz
           psx_mc_cli-Perl/psx-mc-cli-v*-standalone.*
-          psx_mc_cli-Perl/psx-mc-cli.com
+          psx_mc_cli-Perl/psx_mc_cli.com
