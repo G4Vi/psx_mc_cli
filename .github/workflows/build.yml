@@ -50,6 +50,7 @@ jobs:
         make standalone-all
     - name: Load APE config
       run: |
+          cd psx_mc_cli
           echo "PERL_ID=$(apperlm get-config-key psx_mc_cli_with_perldoc perl_id)" >> $GITHUB_ENV
           echo "COSMO_ID=$(apperlm get-config-key psx_mc_cli_with_perldoc cosmo_id)" >> $GITHUB_ENV
     - name: Fetch Perl
